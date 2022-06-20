@@ -43,7 +43,7 @@ class MolecularGNN(pl.LightningModule):
     def forward(self, x):
         def update(matrix, vectors, layer):
             hidden_vectors = torch.relu(self.W_atom[layer](vectors))
-            return hidden_vectors + torch.matmul(matrix, hidden_vectors)
+            return vectors + torch.matmul(matrix, hidden_vectors)
         def sum(vectors, axis):
             sum_vectors = [torch.sum(v, 0) for v in torch.split(vectors, axis)]
             return torch.stack(sum_vectors)
