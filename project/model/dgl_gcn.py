@@ -13,21 +13,29 @@ import dgl
 import dgl.nn.pytorch as dglnn
 from dgl.data import DGLDataset
 from dgl.data.utils import save_graphs, load_graphs, save_info, load_info
+from dgl.dataloading import GraphDataLoader
 
 class MolecularGCN(pl.LightningModule):
     @staticmethod
     def add_model_specific_args(parent_parser):
         parser = parent_parser.add_argument_group("MolecularGNN")
         parser.add_argument("--learning_rate", type=float, default=1e-4)
+        parser.add_argument("--lr_decay", type=float, default=0.99)
         parser.add_argument("--N_atoms", type=int, default=8)
         return parent_parser
     
-    def __init__(self, N_atoms, dim, **kwargs):
+    def __init__(self, N_atoms, dim, learning_rate, lr_decay, **kwargs):
         super().__init__()
-        self.lr = kwargs['learning_rate']
+        self.lr = learning_rate
+        self.lr_decay = lr_decay
         self.save_hyperparameters()
         self.predictions = defaultdict(list)
-
+        # dataset
+        elements_dict = defaultdict(lambda: len(elements_dict))
+        dataset = LigandDataset_dgl(elements_dict=elements_dict, force_reload=False, **kwargs)
+        train_size = int(len(dataset)*0.8)
+        self.train_dataset, self.val_dataset = random_split(dataset, [train_size, len(dataset) - train_size], generator=torch.Generator().manual_seed(42))
+        self.batch_size = kwargs['batch_size']
         # layer parameter
         # conv layer
         dim_l = [dim, 256, 256, 256, 256, 256, 256, 256, 256, 256, 256, 256, 256]
@@ -74,8 +82,12 @@ class MolecularGCN(pl.LightningModule):
             return torch.squeeze(predict_property, dim=1)
 
     def configure_optimizers(self):
+        # 优化器
         optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
-        return optimizer
+        # 学习率控制，指数衰减
+        ExpLR = torch.optim.lr_scheduler.ExponentialLR(optimizer=optimizer, gamma=self.lr_decay)
+        optim_dict = {'optimizer': optimizer, 'lr_scheduler':ExpLR}
+        return optim_dict
 
     def training_step(self, train_batch, batch_idx):
         g, label = train_batch
@@ -104,9 +116,13 @@ class MolecularGCN(pl.LightningModule):
         # self.predictions['id'].extend(batch['id'])
         self.predictions['pred'].extend(y_hat.cpu().numpy())
         self.predictions['true'].extend(label.cpu().numpy())
-
         return loss
 
+    def train_dataloader(self):
+        return GraphDataLoader(self.train_dataset, batch_size=self.batch_size, drop_last=False, shuffle=False, collate_fn=collate_fn)
+
+    def val_dataloader(self):
+        return GraphDataLoader(self.val_dataset, batch_size=self.batch_size, drop_last=False, shuffle=False, collate_fn=collate_fn)
 
 class LigandDataset_dgl(DGLDataset):
     """定义适用于DGL库的数据集"""
