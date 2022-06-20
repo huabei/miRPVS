@@ -1,5 +1,5 @@
 ### Deep learning project seed
-Use this seed to start new deep learning / ML projects.
+This Project is for 
 
 - Built in setup.py
 - Built in requirements
