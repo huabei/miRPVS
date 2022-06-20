@@ -16,6 +16,7 @@ class MolecularGNN(pl.LightningModule):
         parser.add_argument("--learning_rate", type=float, default=1e-4)
         parser.add_argument("--lr_decay", type=float, default=0.99)
         parser.add_argument("--N_atoms", type=int, default=8)
+        parser.add_argument("--num_workers", type=int, default=4)
         return parent_parser
     
     def __init__(self, N_atoms, dim, layer_hidden, layer_output, learning_rate, lr_decay, **kwargs):
@@ -24,6 +25,14 @@ class MolecularGNN(pl.LightningModule):
         self.lr_decay = lr_decay
         self.save_hyperparameters()
         self.predictions = defaultdict(list)
+        # dataset
+        # manage data
+        elements_dict = defaultdict(lambda: len(elements_dict))
+        dataset = LigandDataset(kwargs['data_path'], elements_dict)
+        train_size = int(len(dataset)*0.8)
+        self.train_dataset, self.val_dataset = random_split(dataset, [train_size, len(dataset) - train_size], generator=torch.Generator().manual_seed(42))
+        self.batch_size = kwargs['batch_size']
+        self.num_workers = kwargs['num_workers']
         self.embed_atom = nn.Embedding(N_atoms, dim)
         self.gamma = nn.ModuleList([nn.Embedding(N_atoms, 1)
                                     for _ in range(layer_hidden)])
@@ -101,10 +110,12 @@ class MolecularGNN(pl.LightningModule):
         self.predictions['id'].extend(batch['id'])        
         self.predictions['pred'].extend(y_hat.cpu().numpy())
         self.predictions['true'].extend(batch['label'].cpu().numpy())
-
         return loss
 
-
+    def train_dataloader(self):
+        return DataLoader(self.train_dataset, batch_size=self.batch_size, collate_fn=pad_data, num_workers=self.num_workers)
+    def val_dataloader(self):
+        return DataLoader(self.val_dataset, batch_size=self.batch_size, collate_fn=pad_data, num_workers=self.num_workers)
 class LigandDataset():
     '''get a datafile_path, create dataset, give a single data
         return {'atoms':, 'distance_matrix':, 'id':, 'label':}'''
