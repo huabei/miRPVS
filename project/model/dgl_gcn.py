@@ -22,6 +22,7 @@ class MolecularGCN(pl.LightningModule):
         parser.add_argument("--learning_rate", type=float, default=1e-4)
         parser.add_argument("--lr_decay", type=float, default=0.99)
         parser.add_argument("--N_atoms", type=int, default=8)
+        parser.add_argument("--num_workers", type=int, default=4)
         return parent_parser
     
     def __init__(self, N_atoms, dim, learning_rate, lr_decay, **kwargs):
@@ -36,6 +37,7 @@ class MolecularGCN(pl.LightningModule):
         train_size = int(len(dataset)*0.8)
         self.train_dataset, self.val_dataset = random_split(dataset, [train_size, len(dataset) - train_size], generator=torch.Generator().manual_seed(42))
         self.batch_size = kwargs['batch_size']
+        self.num_workers = kwargs['num_workers']
         # layer parameter
         # conv layer
         dim_l = [dim, 256, 256, 256, 256, 256, 256, 256, 256, 256, 256, 256, 256]
@@ -119,10 +121,10 @@ class MolecularGCN(pl.LightningModule):
         return loss
 
     def train_dataloader(self):
-        return GraphDataLoader(self.train_dataset, batch_size=self.batch_size, drop_last=False, shuffle=False, collate_fn=collate_fn)
+        return GraphDataLoader(self.train_dataset, batch_size=self.batch_size, drop_last=False, shuffle=False, collate_fn=collate_fn, num_workers=self.num_workers)
 
     def val_dataloader(self):
-        return GraphDataLoader(self.val_dataset, batch_size=self.batch_size, drop_last=False, shuffle=False, collate_fn=collate_fn)
+        return GraphDataLoader(self.val_dataset, batch_size=self.batch_size, drop_last=False, shuffle=False, collate_fn=collate_fn, num_workers=self.num_workers)
 
 class LigandDataset_dgl(DGLDataset):
     """定义适用于DGL库的数据集"""
