@@ -8,6 +8,7 @@ import pytorch_lightning as pl
 import numpy as np
 from collections import defaultdict
 from scipy import spatial
+import wandb
 
 class MolecularGNN(pl.LightningModule):
     @staticmethod
@@ -111,6 +112,16 @@ class MolecularGNN(pl.LightningModule):
         self.predictions['pred'].extend(y_hat.cpu().numpy())
         self.predictions['true'].extend(batch['label'].cpu().numpy())
         return loss
+
+    def test_epoch_end(self, outputs) -> None:
+        dummy_input = dict()
+        dummy_input['atoms'] = torch.zeros(10, device=self.device)
+        dummy_input['distance_matrix'] = torch.ones((10, 10), device=self.device)
+        dummy_input['molecular_sizes'] = 10
+        model_filename = 'origgnn.onnx'
+        torch.onnx.export(self, dummy_input, model_filename)
+        wandb.save(model_filename)
+        return super().test_epoch_end(outputs)
 
     def train_dataloader(self):
         return DataLoader(self.train_dataset, batch_size=self.batch_size, collate_fn=pad_data, num_workers=self.num_workers)
