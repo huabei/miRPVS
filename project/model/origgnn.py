@@ -9,7 +9,7 @@ import numpy as np
 from collections import defaultdict
 from scipy import spatial
 import wandb
-
+import time
 class MolecularGNN(pl.LightningModule):
     @staticmethod
     def add_model_specific_args(parent_parser):
@@ -115,11 +115,11 @@ class MolecularGNN(pl.LightningModule):
 
     def test_epoch_end(self, outputs) -> None:
         dummy_input = dict()
-        dummy_input['atoms'] = torch.zeros(10, device=self.device)
-        dummy_input['distance_matrix'] = torch.ones((10, 10), device=self.device)
-        dummy_input['molecular_sizes'] = 10
-        model_filename = 'origgnn.onnx'
-        torch.onnx.export(self, dummy_input, model_filename)
+        dummy_input['atoms'] = torch.tensor(range(self.N_atoms), device=self.device)
+        dummy_input['distance_matrix'] = torch.ones((self.N_atoms, self.N_atoms), device=self.device)
+        dummy_input['molecular_sizes'] = self.N_atoms
+        model_filename = f'log/origgnn{time.strftime("%Y%m%d_%H%M%S", time.localtime())}.onnx'
+        torch.onnx.export(self, dummy_input, model_filename, opset_version=11)
         wandb.save(model_filename)
         return super().test_epoch_end(outputs)
 
