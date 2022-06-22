@@ -118,7 +118,7 @@ class MolecularGNN(pl.LightningModule):
         dummy_input['atoms'] = torch.tensor(range(self.N_atoms), device=self.device)
         dummy_input['distance_matrix'] = torch.ones((self.N_atoms, self.N_atoms), device=self.device)
         dummy_input['molecular_sizes'] = self.N_atoms
-        model_filename = f'origgnn{time.strftime("%Y%m%d_%H%M%S", time.localtime())}.onnx'
+        model_filename = f'log/origgnn{time.strftime("%Y%m%d_%H%M%S", time.localtime())}.onnx'
         torch.onnx.export(self, dummy_input, model_filename, opset_version=11)
         wandb.save(model_filename)
         return super().test_epoch_end(outputs)
