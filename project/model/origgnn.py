@@ -35,10 +35,12 @@ class MolecularGNN(pl.LightningModule):
         self.batch_size = kwargs['batch_size']
         self.num_workers = kwargs['num_workers']
         self.embed_atom = nn.Embedding(N_atoms, dim)
-        self.gamma = nn.ModuleList([nn.Embedding(N_atoms, 1)
+        self.gamma = nn.ModuleList([nn.Embedding(N_atoms, 100)
                                     for _ in range(layer_hidden)])
+        self.gate = nn.ModuleList([nn.Linear(100, 1)
+                            for _ in range(layer_hidden)])
         for i in range(layer_hidden):
-            ones = nn.Parameter(torch.ones((N_atoms, 1)))
+            ones = nn.Parameter(torch.ones((N_atoms, 100)))
             self.gamma[i].weight.data = ones
         self.W_atom = nn.ModuleList([nn.Linear(dim, dim)
                                      for _ in range(layer_hidden)])
@@ -61,7 +63,7 @@ class MolecularGNN(pl.LightningModule):
         """GNN layer (update the atom vectors)."""
         atom_vectors = self.embed_atom(x['atoms'])
         for l in range(self.layer_hidden):
-            gammas = torch.squeeze(self.gamma[l](x['atoms']))
+            gammas = torch.squeeze(torch.sigmoid(self.gate[l](self.gamma[l](x['atoms']))))
             M = torch.exp(-gammas*x['distance_matrix']**2)
             atom_vectors = update(M, atom_vectors, l)
             atom_vectors = F.normalize(atom_vectors, 2, 1)  # normalize.
@@ -120,7 +122,7 @@ class MolecularGNN(pl.LightningModule):
         dummy_input['molecular_sizes'] = self.N_atoms
         model_filename = f'log/origgnn{time.strftime("%Y%m%d_%H%M%S", time.localtime())}.onnx'
         torch.onnx.export(self, dummy_input, model_filename, opset_version=11)
-        wandb.save(model_filename)
+        # wandb.save(model_filename)
         return super().test_epoch_end(outputs)
 
     def train_dataloader(self):

@@ -1,5 +1,5 @@
+*.gz
+*.pdbqt
 *.csv
 *.xlsx
-*.xaa.pdbqt.gz
-*.pdbqt
-*.gz
+*.pkl
