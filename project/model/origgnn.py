@@ -20,7 +20,7 @@ class MolecularGNN(pl.LightningModule):
         parser.add_argument("--num_workers", type=int, default=4)
         return parent_parser
     
-    def __init__(self, N_atoms, dim, layer_hidden, layer_output, learning_rate, lr_decay, **kwargs):
+    def __init__(self, N_atoms, dim, layer_hidden, layer_output, learning_rate, lr_decay,**kwargs):
         super().__init__()
         self.lr = learning_rate
         self.lr_decay = lr_decay
@@ -28,8 +28,10 @@ class MolecularGNN(pl.LightningModule):
         self.predictions = defaultdict(list)
         # dataset
         # manage data
+        # if elements_dict == None:
         elements_dict = defaultdict(lambda: len(elements_dict))
-        dataset = LigandDataset(kwargs['data_path'], elements_dict)
+        self.elements_dict = elements_dict
+        dataset = LigandDataset(self.hparams.data_path, self.elements_dict)
         train_size = int(len(dataset)*0.8)
         self.train_dataset, self.val_dataset = random_split(dataset, [train_size, len(dataset) - train_size], generator=torch.Generator().manual_seed(42))
         self.batch_size = kwargs['batch_size']
@@ -116,12 +118,12 @@ class MolecularGNN(pl.LightningModule):
         return loss
 
     def test_epoch_end(self, outputs) -> None:
-        dummy_input = dict()
-        dummy_input['atoms'] = torch.tensor(range(self.N_atoms), device=self.device)
-        dummy_input['distance_matrix'] = torch.ones((self.N_atoms, self.N_atoms), device=self.device)
-        dummy_input['molecular_sizes'] = self.N_atoms
-        model_filename = f'log/origgnn{time.strftime("%Y%m%d_%H%M%S", time.localtime())}.onnx'
-        torch.onnx.export(self, dummy_input, model_filename, opset_version=11)
+        # dummy_input = dict()
+        # dummy_input['atoms'] = torch.tensor(range(self.N_atoms), device=self.device)
+        # dummy_input['distance_matrix'] = torch.ones((self.N_atoms, self.N_atoms), device=self.device)
+        # dummy_input['molecular_sizes'] = self.N_atoms
+        # model_filename = f'log/origgnn{time.strftime("%Y%m%d_%H%M%S", time.localtime())}.onnx'
+        # torch.onnx.export(self, dummy_input, model_filename, opset_version=11)
         # wandb.save(model_filename)
         return super().test_epoch_end(outputs)
 
@@ -129,6 +131,13 @@ class MolecularGNN(pl.LightningModule):
         return DataLoader(self.train_dataset, batch_size=self.batch_size, collate_fn=pad_data, num_workers=self.num_workers)
     def val_dataloader(self):
         return DataLoader(self.val_dataset, batch_size=self.batch_size, collate_fn=pad_data, num_workers=self.num_workers)
+
+    def on_save_checkpoint(self, checkpoint) -> None:
+        checkpoint['elements_dict'] = dict(self.elements_dict)
+        return super().on_save_checkpoint(checkpoint)
+    def on_load_checkpoint(self, checkpoint) -> None:
+        self.elements_dict = checkpoint['elements_dict']
+        return super().on_load_checkpoint(checkpoint)
 class LigandDataset():
     '''get a datafile_path, create dataset, give a single data
         return {'atoms':, 'distance_matrix':, 'id':, 'label':}'''
