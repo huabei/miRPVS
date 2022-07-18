@@ -16,11 +16,11 @@ class MolecularGNN(pl.LightningModule):
         parser = parent_parser.add_argument_group("MolecularGNN")
         parser.add_argument("--learning_rate", type=float, default=1e-4)
         parser.add_argument("--lr_decay", type=float, default=0.99)
-        parser.add_argument("--N_atoms", type=int, default=8)
+        # parser.add_argument("--N_atoms", type=int, default=8)
         parser.add_argument("--num_workers", type=int, default=4)
         return parent_parser
     
-    def __init__(self, N_atoms, dim, layer_hidden, layer_output, learning_rate, lr_decay,**kwargs):
+    def __init__(self, dim, layer_hidden, layer_output, learning_rate, lr_decay,**kwargs):
         super().__init__()
         self.lr = learning_rate
         self.lr_decay = lr_decay
@@ -32,6 +32,7 @@ class MolecularGNN(pl.LightningModule):
         elements_dict = defaultdict(lambda: len(elements_dict))
         self.elements_dict = elements_dict
         dataset = LigandDataset(self.hparams.data_path, self.elements_dict)
+        N_atoms = len(self.elements_dict)
         train_size = int(len(dataset)*0.8)
         self.train_dataset, self.val_dataset = random_split(dataset, [train_size, len(dataset) - train_size], generator=torch.Generator().manual_seed(42))
         self.batch_size = kwargs['batch_size']
