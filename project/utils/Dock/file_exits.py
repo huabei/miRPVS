@@ -59,21 +59,28 @@ def random_accept(ratio):
 
 
 class ZincPdbqt():
-    def __init__(self, pdbqt_file):
+    def __init__(self, pdbqt_file, transform=None):
         self.f_str = gzip.open(pdbqt_file, mode='rb').read().decode()
         # print(self.f_str[:1000])
         self.zinc_id = re.findall('Name = (.*?)\n', self.f_str)
         # print(len(self.zinc_id))
         self.molecules = re.findall('MODEL.*?\n(.*?)ENDMDL\n', self.f_str, re.S)
+        self.data = list(zip(self.zinc_id, self.molecules))
+        if transform is not None:
+            self.data = list(filter(transform, self.data))
+            # self.data = list(zip(self.zinc_id, self.molecules))
 
     def __iter__(self):
-        return iter(zip(self.zinc_id, self.molecules))
+        return iter(self.data)
 
     def __len__(self):
-        return len(self.zinc_id)
+        return len(self.data)
+
+    def __getitem__(self, item):
+        return self.data[item]
 
     @property
-    def data(self):
+    def data_dict(self):
         return dict(zip(self.zinc_id, self.molecules))
 
     @property
@@ -118,6 +125,26 @@ def generate_coor(pdbqt_model: str, elements_list: list):
                 return False
             pos.append([elements, line[30:38].strip(), line[38:46].strip(), line[46:54].strip()])
     return pos
+
+
+def ele_transform(zinc_pdbqt_item, elements_list):
+    lines = zinc_pdbqt_item[1].strip().split('\n')
+    # results = True
+    for line in lines:
+        if line.startswith(('ATOM', 'HETATM')):
+            # ele = line[12:16].strip()
+            # 去除元素符号中的非字母字符
+            ele = ''.join(filter(str.isalpha, line[12:16]))
+            # 在元素符号字母数大于2的时候，保留元素的数目类型
+            if ele.upper() in elements_list:
+                # results = results and True
+                continue
+            else:
+                return False
+                # results = results and False
+        else:
+            continue
+    return True
 
 
 def write_data(f, data_dict):
