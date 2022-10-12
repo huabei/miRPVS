@@ -38,12 +38,12 @@ class MolecularGNN(pl.LightningModule):
         self.batch_size = kwargs['batch_size']
         self.num_workers = kwargs['num_workers']
         self.embed_atom = nn.Embedding(N_atoms, dim)
-        self.gamma = nn.ModuleList([nn.Embedding(N_atoms, 100)
+        self.gamma = nn.ModuleList([nn.Embedding(N_atoms, 1)
                                     for _ in range(layer_hidden)])
-        self.gate = nn.ModuleList([nn.Linear(100, 1)
-                            for _ in range(layer_hidden)])
+        # self.gate = nn.ModuleList([nn.Linear(200, 1)
+        #                     for _ in range(layer_hidden)])
         for i in range(layer_hidden):
-            ones = nn.Parameter(torch.ones((N_atoms, 100)))
+            ones = nn.Parameter(torch.ones((N_atoms, 1)))
             self.gamma[i].weight.data = ones
         self.W_atom = nn.ModuleList([nn.Linear(dim, dim)
                                      for _ in range(layer_hidden)])
@@ -66,7 +66,7 @@ class MolecularGNN(pl.LightningModule):
         """GNN layer (update the atom vectors)."""
         atom_vectors = self.embed_atom(x['atoms'])
         for l in range(self.layer_hidden):
-            gammas = torch.squeeze(torch.sigmoid(self.gate[l](self.gamma[l](x['atoms']))))
+            gammas = torch.squeeze(torch.sigmoid(self.gamma[l](x['atoms'])))
             M = torch.exp(-gammas*x['distance_matrix']**2)
             atom_vectors = update(M, atom_vectors, l)
             atom_vectors = F.normalize(atom_vectors, 2, 1)  # normalize.
