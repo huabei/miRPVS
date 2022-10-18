@@ -10,6 +10,8 @@ from collections import defaultdict
 from scipy import spatial
 import wandb
 import time
+
+
 class MolecularGNN(pl.LightningModule):
     @staticmethod
     def add_model_specific_args(parent_parser):
@@ -20,7 +22,7 @@ class MolecularGNN(pl.LightningModule):
         parser.add_argument("--num_workers", type=int, default=4)
         return parent_parser
     
-    def __init__(self, dim, layer_hidden, layer_output, learning_rate, lr_decay,**kwargs):
+    def __init__(self, dim, layer_hidden, layer_output, learning_rate, lr_decay, **kwargs):
         super().__init__()
         self.lr = learning_rate
         self.lr_decay = lr_decay

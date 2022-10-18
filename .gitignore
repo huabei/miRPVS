@@ -36,8 +36,6 @@ test_tube_logs/
 test_tube_data/
 datasets/
 model_weights/
-tests/save_dir  
-tests/tests_tt_dir/
 processed/
 raw/
 
@@ -131,3 +129,4 @@ project/data
 project/checkpoints
 project/wandb
 project/log
+*.ckpt

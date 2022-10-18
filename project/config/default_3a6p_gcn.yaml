@@ -1,0 +1,13 @@
+lr_scheduler: cosine
+dataset: zinc_complex3a6p_data
+data_dir: 'data/3a6p/zinc_drug_like_100k/exhaus_96'
+log_dir: 'log/gcn'
+model_name: gcn_model
+max_epochs: 500
+gpus: 1
+project: gcn_3a6p
+in_channels: 10
+hidden_channels: 512
+out_channels: 1
+hidden_layers: 3
+out_layers: 3
