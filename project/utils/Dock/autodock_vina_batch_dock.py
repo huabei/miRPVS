@@ -40,7 +40,7 @@ def main(params):
     # print(dock_results_file_name_list)
     writer = gz_writer(dock_results_file_name)
     i = 0
-    f = open(f'docked_100k_zinc_id{index_area}.txt', 'a+')
+    f = open(f'docked_100k_zinc_id{index_area}.txt', 'w')
     docked_ligand_id_tmp = list()
     # 进行对接
     for ligand_id, ligand_pdbqt in tqdm(ligands, desc='docking'):
