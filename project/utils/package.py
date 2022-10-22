@@ -7,6 +7,8 @@ from rdkit import Chem
 
 def plot_fit_confidence_bond(x, y, r2, annot=True):
     # fit a linear curve an estimate its y-values and their error.
+    x = np.array(x)
+    y = np.array(y)
     a, b = np.polyfit(x, y, deg=1)
     y_est = a * x + b
     # y_err = x.std() * np.sqrt(1 / len(x) +

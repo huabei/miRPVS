@@ -20,6 +20,7 @@ from tqdm import tqdm
 import random
 import io
 from collections import defaultdict
+import pickle
 
 
 def load_model_path(root=None, version=None, v_num=None, best=False):
@@ -251,3 +252,19 @@ def write_data(f, data_dict: dict):
     f.write(str(score))
     f.write('\n')
     return f
+
+
+def read_dock_score(origin_data_path: str) -> dict:
+    """
+    load .pkl file generated from dock process
+    :param origin_data_path: where pkl file located
+    :return: all dock energy in format dict(zinc_id=energy)
+    """
+    file_list = [os.path.join(origin_data_path, i) for i in os.listdir(origin_data_path) if i.endswith('.pkl')]
+    score_dict = dict()
+    for file in file_list:
+        f = open(file, 'rb')
+        score_dict_tmp = pickle.load(f)
+        f.close()
+        score_dict.update(score_dict_tmp)
+    return score_dict

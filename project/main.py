@@ -62,15 +62,17 @@ def load_logger():
 def main(args):
     pl.seed_everything(args.seed)
     wandb.login(key='local-8fe6e6b5840c4c05aaaf6aac5ca8c1fb58abbd1f', host='http://localhost:8080')
-    wandb.init(project=args.project, save_code=False, dir=args.log_dir)
+
     load_path = load_model_path_by_args(args)
     data_module = DInterface(**vars(args))
 
     if load_path is None:
+        wandb.init(project=args.project, save_code=True, dir=args.log_dir)
         model = MInterface(**vars(args))
     else:
         model = MInterface(**vars(args))
         args.resume_from_checkpoint = load_path
+        wandb.init(project=args.project, save_code=True, dir=args.log_dir, resume=True)
 
     args.callbacks = load_callbacks()
     args.logger = load_logger()
@@ -122,7 +124,8 @@ if __name__ == '__main__':
     parser = Trainer.add_argparse_args(parser)
 
     # yaml 文件
-    with open('config/default_3a6p_molecular_gnn.yaml', 'r') as f:
+
+    with open('config/default_3a6p_molecular_gnn_addxyz2.yaml', 'r') as f:
         default_arg = yaml.safe_load(f)
 
     # Reset Some Default Trainer Arguments' Default Values
