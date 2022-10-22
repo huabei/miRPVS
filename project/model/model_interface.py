@@ -39,56 +39,57 @@ class MInterface(pl.LightningModule):
     def forward(self, batch):
         return self.model(batch)
 
+    def on_train_epoch_start(self) -> None:
+        self.train_predictions = defaultdict(list)
+
     def training_step(self, batch: Data, batch_idx):
         # x, edge_index, edge_weight, t_energy = batch.x, batch.edge_index, batch.edge_attr, batch.y
         p_energy = self(batch)
+        self.train_predictions['prediction'].extend(p_energy.detach().cpu().numpy())
+        self.train_predictions['true'].extend(batch.y.detach().cpu().numpy())
         loss = self.loss_function(torch.squeeze(p_energy), batch.y)
         self.log('train_loss', loss, on_step=True, on_epoch=True, prog_bar=True, batch_size=self.hparams.batch_size)
         return loss
 
+    def on_train_end(self) -> None:
+        x_train = np.array(self.train_predictions['true'])
+        y_train = np.array(self.train_predictions['prediction'])
+        x_val = np.array(self.val_predictions['true'])
+        y_val = np.array(self.val_predictions['prediction'])
+        train_r2 = r2_score(x_train, y_train)
+        val_r2 = r2_score(x_val, y_val)
+        train_fig = plot_fit_confidence_bond(x_train, y_train, train_r2, annot=False)
+        val_fig = plot_fit_confidence_bond(x_val, y_val, val_r2, annot=False)
+        wandb.log({'train_res': train_fig, 'train_r2': train_r2})
+        wandb.log({'val_res': val_fig, 'val_r2': val_r2})
+
+    def on_validation_epoch_start(self) -> None:
+        self.val_predictions = defaultdict(list)
+
     def validation_step(self, batch, batch_idx):
         # x, edge_index, edge_weight, t_energy = batch.x, batch.edge_index, batch.edge_attr, batch.y
         p_energy = self(batch)
+        self.val_predictions['prediction'].extend(p_energy.cpu().numpy())
+        self.val_predictions['true'].extend(batch.y.cpu().numpy())
         loss = self.loss_function(torch.squeeze(p_energy), batch.y)
         self.log('val_loss', loss, on_step=False, on_epoch=True, prog_bar=True, batch_size=self.hparams.batch_size)
+        return {'loss': loss, 'preds': p_energy}
 
     def on_test_start(self) -> None:
-        self.predictions = defaultdict(list)
+        self.test_predictions = defaultdict(list)
 
     def test_step(self, batch, batch_idx):
         # Here we just reuse the validation_step for testing
         p_energy = self(batch)
-        self.predictions['prediction'].extend(p_energy.cpu().numpy())
-        self.predictions['true'].extend(batch.y.cpu().numpy())
+        self.test_predictions['prediction'].extend(p_energy.cpu().numpy())
+        self.test_predictions['true'].extend(batch.y.cpu().numpy())
         # loss = self.loss_function(torch.squeeze(p_energy), batch.y)
         return self.loss_function(torch.squeeze(p_energy), batch.y)
 
-    # def on_fit_end(self) -> None:
-    #     train_fig, train_r2 = self.plot_fig(mode='train')
-    #     val_fig, val_r2 = self.plot_fig(mode='val')
-    #     wandb.log({'train_res': train_fig, 'val_res': val_fig})
-    #     wandb.log({'val_r2': val_r2, 'train_r2':train_r2})
-    #
-    # def plot_fig(self, mode='train'):
-    #     if mode == 'train':
-    #         dataloader = self.train_dataloader()
-    #     elif mode == 'val':
-    #         dataloader = self.val_dataloader()
-    #     else:
-    #         raise ValueError(f"Not support mode: {mode}")
-    #     self.predictions = defaultdict(lambda x: list())
-    #     for batch_data in dataloader:
-    #         self.test_step(batch_data, batch_idx=None)
-    #     x = np.array(self.predictions['true'])
-    #     y = np.array(self.predictions['pred'])
-    #     r2 = r2_score(x, y)
-    #     fig = plot_fit_confidence_bond(x, y, r2, annot=False)
-    #     return fig, r2
-
     def on_test_end(self):
         # Make the Progress Bar leave there
-        x = np.array(self.predictions['true'])
-        y = np.array(self.predictions['prediction'])
+        x = np.array(self.test_predictions['true'])
+        y = np.array(self.test_predictions['prediction'])
         test_r2 = r2_score(x, y)
         test_fig = plot_fit_confidence_bond(x, y, test_r2, annot=False)
         wandb.log({'test_res': test_fig, 'test_r2': test_r2})
@@ -133,7 +134,7 @@ class MInterface(pl.LightningModule):
         camel_name = ''.join([i.capitalize() for i in name.split('_')])
         try:
             Model = getattr(importlib.import_module(
-                '.'+name, package=__package__), camel_name)
+                '.' + name, package=__package__), camel_name)
         except:
             raise ValueError(
                 f'Invalid Module File Name or Invalid Class Name {name}.{camel_name}!')
