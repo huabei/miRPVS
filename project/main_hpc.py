@@ -42,12 +42,10 @@ def main(args):
     data_module = DInterface(**vars(args))
 
     if load_path is None:
-        wandb.init(project=args.project, save_code=True, dir=args.log_dir)
         model = MInterface(**vars(args))
     else:
         model = MInterface(**vars(args))
         args.resume_from_checkpoint = load_path
-        wandb.init(project=args.project, save_code=True, dir=args.log_dir, resume=True)
 
     args.callbacks = load_callbacks()
     args.logger = load_logger()
