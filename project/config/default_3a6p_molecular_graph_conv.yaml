@@ -1,0 +1,27 @@
+
+# checkpoint
+#load_dir: checkpoints/gcn
+# lr
+lr_scheduler: cosine
+lr_decay_steps: 5
+lr: 0.0005
+lr_decay_min_lr: 1e-5
+lr_decay_rate: 0.99
+
+# data
+dataset: zinc_complex3a6p_data_graph_conv
+data_dir: 'data/3a6p/zinc_drug_like_100k/3a6p_pocket5_202020'
+log_dir: 'log/gcn'
+model_name: molecular_graph_conv
+
+# train
+max_epochs: 500
+gpus: 1
+project: gcn_3a6p
+in_channels: 10
+hidden_channels: 256
+out_channels: 1
+hidden_layers: 3
+out_layers: 6
+loss: mse
+
