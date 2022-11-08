@@ -130,3 +130,4 @@ project/checkpoints
 project/wandb
 project/log
 *.ckpt
+*.pdb

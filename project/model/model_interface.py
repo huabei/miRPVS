@@ -1,16 +1,3 @@
-# Copyright 2021 Zhongyang Zhang
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
 import inspect
 import torch
@@ -60,8 +47,9 @@ class MInterface(pl.LightningModule):
         val_r2 = r2_score(x_val, y_val)
         train_fig = plot_fit_confidence_bond(x_train, y_train, train_r2, annot=False)
         val_fig = plot_fit_confidence_bond(x_val, y_val, val_r2, annot=False)
-        wandb.log({'train_res': train_fig, 'train_r2': train_r2})
-        wandb.log({'val_res': val_fig, 'val_r2': val_r2})
+        for logger in self.loggers:
+            logger.log_metrics({'train_r2': train_r2, 'val_r2': val_r2})
+        wandb.log({'train_fig': train_fig, 'val_fig': val_fig})
 
     def on_validation_epoch_start(self) -> None:
         self.val_predictions = defaultdict(list)
@@ -92,7 +80,9 @@ class MInterface(pl.LightningModule):
         y = np.array(self.test_predictions['prediction'])
         test_r2 = r2_score(x, y)
         test_fig = plot_fit_confidence_bond(x, y, test_r2, annot=False)
-        wandb.log({'test_res': test_fig, 'test_r2': test_r2})
+        for logger in self.loggers:
+            logger.log_metrics({'test_res': test_fig, 'test_r2': test_r2})
+        wandb.log({'test_fig': test_fig})
 
     def configure_optimizers(self):
         if hasattr(self.hparams, 'weight_decay'):
@@ -123,6 +113,8 @@ class MInterface(pl.LightningModule):
             self.loss_function = F.mse_loss
         elif loss == 'l1':
             self.loss_function = F.l1_loss
+        elif loss == 'smooth_l1':
+            self.loss_function = F.smooth_l1_loss
         else:
             raise ValueError("Invalid Loss Type!")
 

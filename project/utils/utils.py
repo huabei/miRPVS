@@ -1,17 +1,4 @@
-# Copyright 2021 Zhongyang Zhang
-# 
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-# 
-#     http://www.apache.org/licenses/LICENSE-2.0
-# 
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
+import collections
 import os
 from pathlib2 import Path
 import gzip
@@ -21,6 +8,10 @@ import random
 import io
 from collections import defaultdict
 import pickle
+import pandas as pd
+import numpy as np
+import copy
+import functools
 
 
 def load_model_path(root=None, version=None, v_num=None, best=False):
@@ -126,18 +117,24 @@ def random_accept(ratio: float) -> bool:
 
 class ZincPdbqt():
     """
-    A class for pdbqt.gz file, this class could transfer str dict to some friendly format.
+    A class for pdbqt or pdbqt.gz file, this class could transfer str dict to some friendly format.
     """
 
-    def __init__(self, pdbqt_file, transform=None):
+    def __init__(self, pdbqt_file, filter_=None, transform=None):
         self.f_str = gzip.open(pdbqt_file, mode='rb').read().decode()
         # print(self.f_str[:1000])
         self.zinc_id = re.findall('Name = (.*?)\n', self.f_str)
         # print(len(self.zinc_id))
         self.molecules = re.findall('MODEL.*?\n(.*?)ENDMDL\n', self.f_str, re.S)
         self.data = list(zip(self.zinc_id, self.molecules))
+        if filter_ is not None:
+            assert type(filter_) in (list, tuple), 'filter type must be list or tuple'
+            for fil in filter_:
+                self.data = list(filter(fil, self.data))
         if transform is not None:
-            self.data = list(filter(transform, self.data))
+            assert type(transform) in (list, tuple), 'transform type must be list or tuple'
+            for trans in transform:
+                self.data = list(map(trans, self.data))
             # self.data = list(zip(self.zinc_id, self.molecules))
 
     def __iter__(self):
@@ -178,7 +175,17 @@ class ZincPdbqt():
 
     def random_sample(self, ratio: float) -> list:
         num = int(len(self.data) * ratio)
-        return random.shuffle(self.data)[:num]
+        return random.sample(self.data, num)
+
+
+def zinc_pdbqt_transform_decorator(f):
+    """for transform func, to split (zinc_id, data), and return (zinc_id, data)"""
+
+    def wrapper(*args, **kwargs):
+        zinc_id, data = args[0]
+        return zinc_id, f(data, *args[1:], **kwargs)
+
+    return wrapper
 
 
 def gz_writer(file_name: str) -> io.TextIOWrapper:
@@ -187,28 +194,32 @@ def gz_writer(file_name: str) -> io.TextIOWrapper:
     ecn = io.TextIOWrapper(output, encoding='utf-8')
     return ecn
 
+def write_pdbqt_to_gz(pdbqt_list, gz_file):
+    """write a list of pdbqt to gz file"""
+    with gz_writer(gz_file) as f:
+        for pdbqt in tqdm(pdbqt_list, desc='write to gz'):
+            f.writelines('MODEL\n'+pdbqt[1]+'ENDMDL\n')
 
-def generate_coor(pdbqt_model: str, elements_list: list) -> list:
+def generate_coor(pdbqt_model: str):
     """
     analyze pdbqt format str with \n, return all atom in a given elements_list molecular
     :param pdbqt_model: pdbqt format str
-    :param elements_list: all elements molecular could include
-    :return: list:[element, x, y, z].str
+    :return: list:[element, x, y, z].str or bool
     """
     lines = pdbqt_model.strip().split('\n')
     pos = []
     for line in lines:
         if line.startswith(('ATOM', 'HETATM')):
-            elements = line[12:16].strip()
+            atom_info = get_atom_inline(line)
+            # elements = line[12:16].strip()
+            elements = atom_info['atom_name']
             if len(elements) != 1 and elements not in ['BR', 'CL']:
                 elements = elements[0]
-            if elements not in elements_list:
-                return False
-            pos.append([elements, line[30:38].strip(), line[38:46].strip(), line[46:54].strip()])
+            pos.append([elements, atom_info['x'], atom_info['y'], atom_info['z']])
     return pos
 
 
-def ele_transform(zinc_pdbqt_item, elements_list):
+def ele_filter(zinc_pdbqt_item, elements_list=None):
     """
     if pdbqt item have element that not in elements_list, return False, else return True.
     Use in filter() function.
@@ -216,6 +227,7 @@ def ele_transform(zinc_pdbqt_item, elements_list):
     :param elements_list: ['H', 'C', 'O']
     :return: True or False.
     """
+    assert elements_list is not None, 'elements_list is None'
     lines = zinc_pdbqt_item[1].strip().split('\n')
     elements_list = [i.upper() for i in elements_list]
     for line in lines:
@@ -268,3 +280,97 @@ def read_dock_score(origin_data_path: str) -> dict:
         f.close()
         score_dict.update(score_dict_tmp)
     return score_dict
+
+
+def statistic_pocket_interaction(pocket_atom):
+    """statistic 17-20 letters by length in every line start with ATOM in file pocket_atom
+    output like:
+                {'len_three': 12,
+                'len_one': 15}"""
+    pocket_atom = pocket_atom.strip().split('\n')
+    pocket_atom = [i for i in pocket_atom if i.startswith('ATOM')]
+    pocket_atom = [i[17:20].strip() for i in pocket_atom]
+    pocket_atom = [len(i) for i in pocket_atom]
+    pocket_atom = collections.Counter(pocket_atom)
+    return pocket_atom
+
+
+def ligand_pocket_position_statistics(pocket_alpha: list, atom_list):
+    """
+    计算对接后的分子中m个原子距离pocket中n个alpha球的距离,return nxm
+    :param pocket_alpha: [[atom_name, x, y, z], [atom_name, x, y, z], ...]
+    :param atom_list: [[element, x, y, z], [element, x, y, z], ...]
+    :return: 1xm, 分子中每个原子最近的alpha球的距离
+    """
+    atom_xyz = get_xyz(atom_list)
+    alpha_sphere = get_xyz(pocket_alpha)
+    # print(alpha_sphere)
+    # 计算分子中每个原子据所有alpha球的距离（n, 3, m)， n为alpha球的个数
+    vector_matrix = atom_xyz.T[np.newaxis, :] - alpha_sphere[:, :, np.newaxis]
+    # 利用爱因斯坦求和简记法对中间一个维度求和->(n, m)
+    distance_matrix = np.einsum('ijk, ijk->ik', vector_matrix, vector_matrix)
+    # 返回所有原子最近alpha球的距离(1xm)
+    return np.mean(np.sqrt(np.min(distance_matrix, axis=0)))
+
+
+def get_pocket_info(pocket_folder):
+    pocket_num = int(len(os.listdir(pocket_folder)) / 2)
+    # print(pocket_num)
+    # 获取pocket中alpha球的位置
+    pocket_dict = dict()
+    for i in range(pocket_num):
+        i += 1
+        pocket_dict[i] = get_pdb_atom_info(os.path.join(pocket_folder, f'pocket{i}_vert.pqr'))['ATOM']
+    return pocket_dict
+
+
+def get_atom_inline(line):
+    """
+    get atom info from line
+    :param line: line start with ATOM
+    :return: dict
+    """
+    atom_info = dict()
+    atom_info['atom_name'] = line[12:16].strip()
+    atom_info['residue_name'] = line[17:20].strip()
+    atom_info['chain_id'] = line[21:22].strip()
+    atom_info['residue_number'] = line[22:26].strip()
+    atom_info['x'] = float(line[30:38].strip())
+    atom_info['y'] = float(line[38:46].strip())
+    atom_info['z'] = float(line[46:54].strip())
+    return atom_info
+
+
+def get_xyz(atom_list):
+    df = pd.DataFrame(atom_list, columns=['atom', 'x', 'y', 'z'])
+    # print(df['atom'])
+    return df[['x', 'y', 'z']].to_numpy()
+
+
+def get_pdb_atom_info(file_path):
+    """get [[atom_type, x, y, z], ...]"""
+    f = open(file_path, 'r')
+    # 分别将HETATM和ATOM类型原子的信息进行统计
+    atom_info_dict = defaultdict(list)
+    for row in f:
+        if row[:6] in ['HETATM', 'ATOM  '] :
+            atom_info = get_atom_inline(row)
+            atom_info_dict[row[:6].strip()].append((atom_info['atom_name'],
+                                                    atom_info['x'],
+                                                    atom_info['y'],
+                                                    atom_info['z']))
+    f.close()
+    return atom_info_dict
+
+
+def map_and_conjunction(func, iterables):
+    """
+    map and conjunction
+    :param func: function
+    :param iterables: iterables
+    :return: conjunction result
+    """
+    assert len(iterables) > 1, 'iterables must be more than 1'
+    return functools.reduce(lambda x, y: x+y, list(map(func, iterables)))
+
+
