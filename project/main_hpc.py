@@ -11,7 +11,7 @@ from data import DInterface
 from utils import load_model_path_by_args
 
 
-def load_callbacks():
+def load_callbacks(args):
     callbacks = [plc.EarlyStopping(
         monitor='val_loss',
         mode='min',
@@ -31,7 +31,7 @@ def load_callbacks():
     return callbacks
 
 
-def load_logger():
+def load_logger(args):
     tb_logger = TensorBoardLogger(save_dir=args.log_dir, name='tensorboard')
     return [tb_logger]
 
@@ -47,8 +47,8 @@ def main(args):
         model = MInterface(**vars(args))
         args.resume_from_checkpoint = load_path
 
-    args.callbacks = load_callbacks()
-    args.logger = load_logger()
+    args.callbacks = load_callbacks(args)
+    args.logger = load_logger(args)
     trainer = Trainer.from_argparse_args(args)
     trainer.fit(model, data_module)
     trainer.test(model, data_module)

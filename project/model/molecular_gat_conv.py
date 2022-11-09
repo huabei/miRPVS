@@ -1,4 +1,4 @@
-from torch_geometric.nn import GraphConv
+from torch_geometric.nn import GATConv
 import torch
 from torch.nn import Linear, Parameter, Embedding, ModuleList, Module
 from torch_geometric.nn import MessagePassing, MLP
@@ -30,7 +30,7 @@ class MolecularGraphConv(Module):
 
         self.embd = Embedding(in_channels, hidden_channels, dtype=torch.float32)
 
-        self.m_gcn = ModuleList([GraphConv(hidden_channels, hidden_channels) for _ in range(hidden_layers)])
+        self.m_gcn = ModuleList([GATConv(hidden_channels, hidden_channels) for _ in range(hidden_layers)])
 
         self.lin = ModuleList([Linear(hidden_channels, hidden_channels) for _ in range(out_layers)])
         self.w_property = Linear(hidden_channels, out_channels)
@@ -40,7 +40,7 @@ class MolecularGraphConv(Module):
     def forward(self, batch: Batch):
         x = self.embd(batch.x)
         for m in range(self.hidden_layers):
-            h_x = self.m_gcn[m](x=x, edge_index=batch.edge_index, edge_weight=batch.edge_attr)
+            h_x = self.m_gcn[m](x=x, edge_index=batch.edge_index, edge_attr=batch.edge_attr)
             x = F.normalize(h_x, 2, 1)
         for i in range(self.out_layers):
             x = torch.relu(self.lin[i](x))
