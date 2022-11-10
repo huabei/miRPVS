@@ -9,7 +9,7 @@ from torch_geometric.data import Batch
 from torch_scatter import scatter_sum
 
 
-class MolecularGraphConv(Module):
+class MolecularGatConv(Module):
     """这是MolecularGNN那篇文献的pyg实现"""
 
     def __init__(self, in_channels: int, hidden_channels: int, out_channels: int, hidden_layers: int, out_layers: int,
@@ -30,7 +30,7 @@ class MolecularGraphConv(Module):
 
         self.embd = Embedding(in_channels, hidden_channels, dtype=torch.float32)
 
-        self.m_gcn = ModuleList([GATConv(hidden_channels, hidden_channels) for _ in range(hidden_layers)])
+        self.m_gcn = ModuleList([GATConv(hidden_channels, hidden_channels, edge_dim=1) for _ in range(hidden_layers)])
 
         self.lin = ModuleList([Linear(hidden_channels, hidden_channels) for _ in range(out_layers)])
         self.w_property = Linear(hidden_channels, out_channels)

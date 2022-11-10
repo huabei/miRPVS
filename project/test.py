@@ -6,22 +6,23 @@
 """
 from data.zinc_complex3a6p_data_e3nn import ZincComplex3a6pDataE3nn
 from torch_geometric.loader import DataLoader
-from model.molecular_e3nn_egcn import MolecularE3nnEgcn
+from model.molecular_e3nn_transformer import MolecularE3nnTransformer
 from data.data_interface import DInterface
 from torch_scatter import scatter_sum
 import pytorch_lightning as pl
 from tqdm import tqdm
-from model.molecular_graph_conv import MolecularGraphConv
+# from model.molecular_graph_conv import MolecularGraphConv
 
 if __name__ == '__main__':
     pl.seed_everything(1234)
     # dataset = ZincComplex3a6pDataE3nn(
     #     data_dir='data/3a6p/zinc_drug_like_100k/3a6p_pocket5_202020')
     data_dir = 'data/3a6p/zinc_drug_like_100k/3a6p_pocket5_202020'
-    dataset = 'zinc_complex3a6p_data_graph_conv'
+    dataset = 'zinc_complex3a6p_data_e3nn'
     d = DInterface(dataset=dataset, data_dir=data_dir, batch_size=128)
     d.setup(stage='fit')
-    model = MolecularGraphConv(10, 128, 1, 2, 6)
+    # model = MolecularGraphConv(10, 128, 1, 2, 6)
+    model = MolecularE3nnTransformer(10, 128, 1, 4, 3)
     # dataloader = DataLoader(d, batch_size=128, shuffle=True)
     for epoch in range(100):
         print(epoch)
