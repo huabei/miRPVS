@@ -56,7 +56,7 @@ class Transformer(torch.nn.Module):
         alpha = exp / z[edge_dst]
         # compute the outputs (per node)
         f_out = scatter(alpha.relu().sqrt() * v, edge_dst, dim=0, dim_size=len(f))
-        return node_features
+        return f_out
 
 
 class MolecularE3nnTransformer(Module):
@@ -124,6 +124,7 @@ class MolecularE3nnTransformer(Module):
         # edge_sh = o3.spherical_harmonics(irreps_sh, batch.edge_attr, normalize=True, normalization='component')
         for m in range(self.hidden_layers):
             x = self.m_gcn[m](x, batch.edge_index[0], batch.edge_index[1], edge_sh, edge_weight_cutoff, edge_length_embedded)
+            x = F.relu(x) + x
         for i in range(self.out_layers):
             x = torch.relu(self.lin[i](x))
         m_x = scatter_sum(x, batch.batch, dim=0)
