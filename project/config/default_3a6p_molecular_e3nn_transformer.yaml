@@ -4,7 +4,7 @@
 # lr
 lr_scheduler: cosine
 lr_decay_steps: 5
-lr: 0.001
+lr: 0.0001
 lr_decay_min_lr: 1e-5
 lr_decay_rate: 0.9
 
@@ -19,9 +19,13 @@ max_epochs: 500
 gpus: 1
 project: gcn_3a6p
 in_channels: 10
-hidden_channels: 128
+hidden_channels: 200
 out_channels: 1
 hidden_layers: 6
 out_layers: 6
 loss: mse
+accumulate_grad_batches: 2
+# gradient_clip_val: 0.5
 
+# comment
+comment: ''

@@ -32,7 +32,7 @@ def load_callbacks(args):
 
 
 def load_logger(args):
-    tb_logger = TensorBoardLogger(save_dir=args.log_dir, name='tensorboard')
+    tb_logger = TensorBoardLogger(save_dir=args.log_dir, name='tensorboard', comment=args.comment)
     return [tb_logger]
 
 
@@ -58,6 +58,7 @@ if __name__ == '__main__':
     parser = ArgumentParser()
     # Project info
     parser.add_argument('--project', type=str)
+    parser.add_argument('--comment', type=str)
 
     # Basic Training Control
     parser.add_argument('--batch_size', default=128, type=int)
@@ -66,9 +67,9 @@ if __name__ == '__main__':
     parser.add_argument('--lr', default=5e-4, type=float)
 
     # LR Scheduler
-    parser.add_argument('--lr_scheduler', choices=['step', 'cosine'], type=str)
-    parser.add_argument('--lr_decay_steps', default=1, type=int)
-    parser.add_argument('--lr_decay_rate', default=0.5, type=float)
+    parser.add_argument('--lr_scheduler', choices=['step', 'cosine'], type=str, default='cosine')
+    parser.add_argument('--lr_decay_steps', default=5, type=int)
+    parser.add_argument('--lr_decay_rate', default=0.99, type=float)
     parser.add_argument('--lr_decay_min_lr', default=1e-5, type=float)
 
     # Restart Control
@@ -78,10 +79,10 @@ if __name__ == '__main__':
     parser.add_argument('--load_v_num', default=None, type=int)
 
     # Training Info
-    parser.add_argument('--dataset', default='zinc_complex3a6p_data', type=str)
-    parser.add_argument('--data_dir', default='data/3a6p/zinc_drug_like_100k/exhaus_96', type=str)
-    parser.add_argument('--log_dir', default='log/gcn', type=str)
-    parser.add_argument('--model_name', default='gcn', type=str)
+    parser.add_argument('--dataset', default='zinc_complex3a6p_data_e3nn', type=str)
+    parser.add_argument('--data_dir', default='data/3a6p/zinc_drug_like_100k/3a6p_pocket5_202020', type=str)
+    parser.add_argument('--log_dir', default='log/e3nn_transformer', type=str)
+    parser.add_argument('--model_name', default='molecular_e3nn_transformer', type=str)
     parser.add_argument('--loss', default='mse', type=str, choices=['l1, mse', 'smooth_l1'])
     parser.add_argument('--weight_decay', default=1e-4, type=float)
     parser.add_argument('--no_augment', action='store_true')
@@ -90,20 +91,20 @@ if __name__ == '__main__':
     parser.add_argument('--in_channels', default=10, type=int)
     parser.add_argument('--hidden_channels', default=256, type=int)
     parser.add_argument('--out_channels', default=1, type=int)
-    parser.add_argument('--hidden_layers', default=6, type=int)
+    parser.add_argument('--hidden_layers', default=16, type=int)
     parser.add_argument('--out_layers', default=6, type=int)
 
     # Add pytorch lightning's args to parser as a group.
-    parser = Trainer.add_argparse_args(parser)
+    parser = pl.Trainer.add_argparse_args(parser)
 
     # yaml 文件
 
-    with open('config/default_3a6p_molecular_gnn_super_gamma.yaml', 'r') as f:
+    with open('config/default_3a6p_molecular_e3nn_transformer.yaml', 'r') as f:
         default_arg = yaml.safe_load(f)
 
     # Reset Some Default Trainer Arguments' Default Values
     parser.set_defaults(**default_arg)
 
-    args = parser.parse_args()
+    args, unknown = parser.parse_known_args()
 
     main(args)
