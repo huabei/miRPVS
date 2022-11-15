@@ -4,8 +4,8 @@
 # lr
 lr_scheduler: cosine
 lr_decay_steps: 5
-lr: 0.0001
-lr_decay_min_lr: 1e-5
+lr: 0.001
+lr_decay_min_lr: 1e-4
 lr_decay_rate: 0.9
 
 # data
@@ -28,4 +28,4 @@ accumulate_grad_batches: 2
 # gradient_clip_val: 0.5
 
 # comment
-comment: ''
+comment: 'high lr'
