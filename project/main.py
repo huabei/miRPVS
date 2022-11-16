@@ -10,9 +10,10 @@ from model import MInterface
 from data import DInterface
 from utils import load_model_path_by_args
 import wandb
+from ray.tune.integration.pytorch_lightning import TuneReportCallback
 
 
-def load_callbacks():
+def load_callbacks(args):
     callbacks = [plc.EarlyStopping(
         monitor='val_loss',
         mode='min',
@@ -29,41 +30,45 @@ def load_callbacks():
     if args.lr_scheduler:
         callbacks.append(plc.LearningRateMonitor(
             logging_interval='epoch'))
+    if args.tune:
+        callbacks.append(TuneReportCallback(
+            metrics={'loss': 'val_loss'},
+            on='validation_end'))
     return callbacks
 
 
-def load_logger():
-    wandb_logger = WandbLogger(project=args.project, save_dir=args.log_dir)
-    tb_logger = TensorBoardLogger(save_dir=args.log_dir, name='tensorboard')
+def load_logger(args):
+    wandb_logger = WandbLogger(project=args.project, save_dir=args.log_dir, notes=args.comment)
+    tb_logger = TensorBoardLogger(save_dir=args.log_dir, name='tensorboard', comment=args.comment)
     return [wandb_logger, tb_logger]
 
 
 def main(args):
     pl.seed_everything(args.seed)
     wandb.login(key='local-8fe6e6b5840c4c05aaaf6aac5ca8c1fb58abbd1f', host='http://localhost:8080')
+    wandb.init(project=args.project, save_code=False, dir=args.log_dir, reinit=True)
 
     load_path = load_model_path_by_args(args)
     data_module = DInterface(**vars(args))
-
     if load_path is None:
-        wandb.init(project=args.project, save_code=True, dir=args.log_dir)
         model = MInterface(**vars(args))
     else:
         model = MInterface(**vars(args))
         args.resume_from_checkpoint = load_path
-        wandb.init(project=args.project, save_code=True, dir=args.log_dir, resume=True)
 
-    args.callbacks = load_callbacks()
-    args.logger = load_logger()
+    args.callbacks = load_callbacks(args)
+    args.logger = load_logger(args)
     trainer = Trainer.from_argparse_args(args)
     trainer.fit(model, data_module)
     trainer.test(model, data_module)
+    wandb.finish()
 
 
-if __name__ == '__main__':
+def parse_args():
     parser = ArgumentParser()
     # Project info
     parser.add_argument('--project', type=str)
+    parser.add_argument('--comment', type=str)
 
     # Basic Training Control
     parser.add_argument('--batch_size', default=128, type=int)
@@ -93,6 +98,7 @@ if __name__ == '__main__':
     parser.add_argument('--no_augment', action='store_true')
 
     # Model Hyperparameters
+    parser.add_argument('--tune', default=1, type=int)
     parser.add_argument('--in_channels', default=10, type=int)
     parser.add_argument('--hidden_channels', default=256, type=int)
     parser.add_argument('--out_channels', default=1, type=int)
@@ -102,9 +108,14 @@ if __name__ == '__main__':
     # Add pytorch lightning's args to parser as a group.
     parser = Trainer.add_argparse_args(parser)
 
-    # yaml 文件
+    return parser
 
-    with open('config/default_3a6p_molecular_e3nn_transformer.yaml', 'r') as f:
+
+if __name__ == '__main__':
+    parser = parse_args()
+
+    # yaml 文件
+    with open('config/default_3a6p_molecular_gnn_super_gamma.yaml', 'r') as f:
         default_arg = yaml.safe_load(f)
 
     # Reset Some Default Trainer Arguments' Default Values
