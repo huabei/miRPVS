@@ -9,7 +9,7 @@ import pytorch_lightning.callbacks as plc
 from model.model_interface_hpc import MInterface
 from data import DInterface
 from utils import load_model_path_by_args
-
+from ray.tune.integration.pytorch_lightning import TuneReportCallback
 
 def load_callbacks(args):
     callbacks = [plc.EarlyStopping(
@@ -28,6 +28,10 @@ def load_callbacks(args):
     if args.lr_scheduler:
         callbacks.append(plc.LearningRateMonitor(
             logging_interval='epoch'))
+    if args.tune:
+        callbacks.append(TuneReportCallback(
+            metrics={'loss': 'val_loss'},
+            on='validation_end'))
     return callbacks
 
 
