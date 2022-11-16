@@ -15,7 +15,7 @@ if __name__ == '__main__':
     @decorator_trainable
     def trainable(args):
         main(args)
-    num_samples = 10
+    num_samples = 50
     gpu_per_trial = 0.5
     project = 'molecular_gnn_tune'
     comment = 'first tune'

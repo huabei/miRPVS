@@ -10,6 +10,6 @@ tune: True
 in_channels: 10
 out_channels: 1
 gpus: 1
-max_epochs: 500
+max_epochs: 10
 lr_decay_min_lr: 1e-5
 enable_progress_bar: False

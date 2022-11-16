@@ -7,6 +7,7 @@ from ray.tune.integration.pytorch_lightning import TuneReportCallback
 from main import main, parse_args
 import yaml
 import os
+import time
 
 def decorator_trainable(func):
     def wrapper(config: dict, constant: dict, project: str, comment: str):
@@ -47,6 +48,8 @@ def main_tune(trainable, config: dict, num_samples: int, gpus_per_trial: int, pr
         param_space=config,
     )
     results = tuner.fit()
+    df_name = f'tune_df_data/{project}_{comment}_{time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())}.csv'
+    results.get_dataframe().to_csv(df_name)
     print("Best hyperparameters found were: ", results.get_best_result().config)
 
 
