@@ -10,16 +10,18 @@ from model.model_interface_hpc import MInterface
 from data import DInterface
 from utils import load_model_path_by_args
 from ray.tune.integration.pytorch_lightning import TuneReportCallback
+import time
 
 def load_callbacks(args):
+    time_ = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())
     callbacks = [plc.EarlyStopping(
         monitor='val_loss',
         mode='min',
-        patience=20
+        patience=10
     ), plc.ModelCheckpoint(
-        dirpath='checkpoints/gcn',
+        dirpath=f'checkpoints/{args.model_name}',
         monitor='val_loss',
-        filename='best-{epoch:02d}-{train_loss:.2f}-{val_loss:.2f}',
+        filename='best-{epoch:02d}-{train_loss:.2f}-{val_loss:.2f}'+time_,
         save_top_k=1,
         mode='min',
         save_last=True

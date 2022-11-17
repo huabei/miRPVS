@@ -26,14 +26,14 @@ def decorator_trainable(func):
 
 def main_tune(trainable, config: dict, num_samples: int, gpus_per_trial: int, project: str, comment: str, constant_dir: str = 'constant.yaml'):
 
-    num_epochs = 501
+    num_epochs = 325
     scheduler = ASHAScheduler(
         max_t=num_epochs, # max epoch
-        grace_period=2, # 延缓周期r, 规定起始epoch数目为{r * η^s}个，用于避免过早停止
-        reduction_factor=2) # 降低因子η，每个周期保留{n/η}个trial
-
+        grace_period=10, # 延缓周期r, 规定起始epoch数目为{r * η^s}个，用于避免过早停止
+        reduction_factor=2, # 降低因子η，每个周期保留{n/η}个trial
+        brackets=1)
     reporter = CLIReporter(
-        parameter_columns=["lr_decay_rate", "lr", "hidden_channel", "out_layers", "hidden_layers", "batch_size"],
+        parameter_columns=["lr_decay_rate", "lr", "hidden_channels", "out_layers", "hidden_layers", "batch_size"],
         metric_columns=["loss", "training_iteration"])
 
     # yaml 文件
@@ -62,7 +62,7 @@ if __name__ == '__main__':
     config = {
         "lr_decay_rate": tune.uniform(0.8, 1.0),
         "lr": tune.loguniform(1e-4, 1e-1),
-        "hidden_channel": tune.randint(64, 512),
+        "hidden_channels": tune.randint(64, 512),
         "out_layers": tune.randint(1, 10),
         "hidden_layers": tune.randint(1, 10),
         "batch_size": tune.randint(32, 256),

@@ -2,7 +2,7 @@ num_workers: 4
 seed: 1234
 dataset: zinc_complex3a6p_data
 data_dir: '/public/home/hpc192311018/Huabei/project/smtar-rna/project/data/3a6p/zinc_drug_like_100k/3a6p_pocket5_202020'
-log_dir: '/public/home/hpc192311018/Huabei/project/smtar-rna/project/log/tune/molecular_gnn'
+log_dir: '/public/home/hpc192311018/Huabei/project/smtar-rna/project/log/tune/molecular_gnn_r10_smp256'
 model_name: molecular_gnn
 loss: mse
 # weight_decay: 0.0001
@@ -10,6 +10,6 @@ tune: True
 in_channels: 10
 out_channels: 1
 gpus: 1
-max_epochs: 500
-lr_decay_min_lr: 1e-5
+max_epochs: 320
+# lr_decay_min_lr: 1e-5
 enable_progress_bar: False
