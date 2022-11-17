@@ -28,9 +28,9 @@ def main_tune(trainable, config: dict, num_samples: int, gpus_per_trial: int, pr
 
     num_epochs = 501
     scheduler = ASHAScheduler(
-        max_t=num_epochs,
-        grace_period=1,
-        reduction_factor=2)
+        max_t=num_epochs, # max epoch
+        grace_period=2, # 延缓周期r, 规定起始epoch数目为{r * η^s}个，用于避免过早停止
+        reduction_factor=2) # 降低因子η，每个周期保留{n/η}个trial
 
     reporter = CLIReporter(
         parameter_columns=["lr_decay_rate", "lr", "hidden_channel", "out_layers", "hidden_layers", "batch_size"],
