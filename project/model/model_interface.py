@@ -13,6 +13,7 @@ from torch_geometric.data import Data
 from collections import defaultdict
 import wandb
 import matplotlib.pyplot as plt
+from pytorch_lightning.loggers import WandbLogger, TensorBoardLogger
 
 
 class MInterface(pl.LightningModule):
@@ -47,8 +48,13 @@ class MInterface(pl.LightningModule):
         val_r2 = r2_score(x_val, y_val)
         train_fig = plot_fit_confidence_bond(x_train, y_train, train_r2, annot=False)
         val_fig = plot_fit_confidence_bond(x_val, y_val, val_r2, annot=False)
+        self.train_r2 = train_r2
+        self.val_r2 = val_r2
         for logger in self.loggers:
             logger.log_metrics({'train_r2': train_r2, 'val_r2': val_r2})
+            if type(logger) is TensorBoardLogger:
+                logger.experiment.add_figure('train_fig', train_fig)
+                logger.experiment.add_figure('val_fig', val_fig)
         wandb.log({'train_fig': train_fig, 'val_fig': val_fig})
 
     def on_validation_epoch_start(self) -> None:
@@ -82,6 +88,10 @@ class MInterface(pl.LightningModule):
         test_fig = plot_fit_confidence_bond(x, y, test_r2, annot=False)
         for logger in self.loggers:
             logger.log_metrics({'test_r2': test_r2})
+            if type(logger) is TensorBoardLogger:
+                logger.experiment.add_figure('test_fig', test_fig)
+                logger.log_hyperparams(self.hparams,
+                                       {'test_r2': test_r2, 'train_r2': self.train_r2, 'val_r2': self.val_r2})
         wandb.log({'test_fig': test_fig})
 
     def configure_optimizers(self):

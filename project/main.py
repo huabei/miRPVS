@@ -39,7 +39,8 @@ def load_callbacks(args):
 
 def load_logger(args):
     wandb_logger = WandbLogger(project=args.project, save_dir=args.log_dir, notes=args.comment)
-    tb_logger = TensorBoardLogger(save_dir=args.log_dir, name='tensorboard', comment=args.comment)
+    tb_logger = TensorBoardLogger(save_dir=args.log_dir,
+                                  default_hp_metric=False, name='tensorboard', comment=args.comment)
     return [wandb_logger, tb_logger]
 
 
