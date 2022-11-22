@@ -15,9 +15,9 @@ if __name__ == '__main__':
     @decorator_trainable
     def trainable(args):
         main(args)
-    num_samples = 160
+    num_samples = 256
     gpu_per_trial = 0.5
-    project = 'molecular_gnn_tune'
+    project = 'molecular_gnn_super_gamma_tune'
     comment = 'mature_tune'
     constant_dir = 'config/constant_config_hpc.yaml'
     config = {

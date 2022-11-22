@@ -13,13 +13,14 @@ from ray.tune.integration.pytorch_lightning import TuneReportCallback
 import time
 
 def load_callbacks(args):
+    checkpoint_dirpath = f'checkpoints/{args.model_name}'
     time_ = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())
     callbacks = [plc.EarlyStopping(
         monitor='val_loss',
         mode='min',
         patience=10
     ), plc.ModelCheckpoint(
-        dirpath=f'checkpoints/{args.model_name}',
+        dirpath=checkpoint_dirpath,
         monitor='val_loss',
         filename='best-{epoch:02d}-{train_loss:.2f}-{val_loss:.2f}'+time_,
         save_top_k=1,

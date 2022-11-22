@@ -24,7 +24,7 @@ def decorator_trainable(func):
     return wrapper
 
 
-def main_tune(trainable, config: dict, num_samples: int, gpus_per_trial: int, project: str, comment: str, constant_dir: str = 'constant.yaml'):
+def main_tune(trainable, config: dict, num_samples: int, gpus_per_trial: float, project: str, comment: str, constant_dir: str = 'constant.yaml'):
 
     num_epochs = 325
     scheduler = ASHAScheduler(
