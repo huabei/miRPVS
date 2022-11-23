@@ -99,7 +99,7 @@ def parse_args():
     parser.add_argument('--no_augment', action='store_true')
 
     # Model Hyperparameters
-    parser.add_argument('--tune', default=1, type=int)
+    parser.add_argument('--tune', default=0, type=int)
     parser.add_argument('--in_channels', default=10, type=int)
     parser.add_argument('--hidden_channels', default=256, type=int)
     parser.add_argument('--out_channels', default=1, type=int)
@@ -116,7 +116,7 @@ if __name__ == '__main__':
     parser = parse_args()
 
     # yaml 文件
-    with open('config/default_3a6p_molecular_gnn_super_gamma.yaml', 'r') as f:
+    with open('config/default_3a6p_molecular_e3nn_transformer.yaml', 'r') as f:
         default_arg = yaml.safe_load(f)
 
     # Reset Some Default Trainer Arguments' Default Values

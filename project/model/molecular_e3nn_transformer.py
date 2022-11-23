@@ -62,7 +62,7 @@ class Transformer(torch.nn.Module):
 class MolecularE3nnTransformer(Module):
     """这是使用e3nn的GCN实现"""
 
-    def __init__(self, in_channels: int, hidden_channels: int, out_channels:int, hidden_layers: int, out_layers: int,
+    def __init__(self, in_channels: int, hidden_channels: int, out_channels: int, hidden_layers: int, out_layers: int,
                  dropout=0, norm=None, max_radius=2.0):
         """
         这个是自定义的模型
@@ -123,7 +123,7 @@ class MolecularE3nnTransformer(Module):
         # # e = self.e3nn_conv2(x, batch.edge_index[0], batch.edge_index[1], batch.edge_attr, edge_length_embedding)
         # edge_sh = o3.spherical_harmonics(irreps_sh, batch.edge_attr, normalize=True, normalization='component')
         for m in range(self.hidden_layers):
-            h_x = self.m_gcn[m](x, batch.edge_index[0], batch.edge_index[1], edge_sh, edge_weight_cutoff, edge_length_embedded)
+            h_x = self.m_gcn[m](x, batch.edge_index[1], batch.edge_index[0], edge_sh, edge_weight_cutoff, edge_length_embedded)
             x = F.relu(h_x) + x
         for i in range(self.out_layers):
             x = torch.relu(self.lin[i](x))
