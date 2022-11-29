@@ -69,7 +69,7 @@ class ZincComplex3a6pDataE3nnNumber(InMemoryDataset):
             # max_radius = 1e6
             edge_index = knn_graph(pos, k=6, loop=True)
             # create edge_vec
-            edge_vec = pos[edge_index[1]] - pos[edge_index[0]]
+            edge_vec = pos[edge_index[0]] - pos[edge_index[1]]
             d = Data(x=torch.tensor(atoms, dtype=torch.long), edge_index=edge_index, edge_attr=edge_vec,
                      y=property,
                      pos=torch.tensor(atom_coords), id=id)

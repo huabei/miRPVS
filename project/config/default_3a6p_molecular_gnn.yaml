@@ -1,5 +1,5 @@
 lr_scheduler: cosine
-dataset: zinc_complex3a6p_data
+dataset: zinc_complex3a6p_data_y2
 data_dir: 'data/3a6p/zinc_drug_like_100k/exhaus_96'
 log_dir: 'log/gcn'
 model_name: molecular_gnn

@@ -24,7 +24,7 @@ class GcnModel(Module):
 
     def forward(self, batch):
         x = self.embd(batch.x)
-        x = self.gcn(x, batch.edge_index, batch.edge_attr)
+        x = self.gcn(x, batch.edge_index)
         x = self.mlp(x)
         return scatter_sum(torch.squeeze(x, dim=1), batch.batch)
 

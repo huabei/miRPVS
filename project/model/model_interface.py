@@ -33,11 +33,22 @@ class MInterface(pl.LightningModule):
     def training_step(self, batch: Data, batch_idx):
         # x, edge_index, edge_weight, t_energy = batch.x, batch.edge_index, batch.edge_attr, batch.y
         p_energy = self(batch)
+        y = batch.y
         self.train_predictions['prediction'].extend(p_energy.detach().cpu().numpy())
-        self.train_predictions['true'].extend(batch.y.detach().cpu().numpy())
-        loss = self.loss_function(torch.squeeze(p_energy), batch.y)
+        self.train_predictions['true'].extend(y.detach().cpu().numpy())
+        loss = self.loss_function(torch.squeeze(p_energy), y)
         self.log('train_loss', loss, on_step=True, on_epoch=True, prog_bar=True, batch_size=self.hparams.batch_size)
         return loss
+
+    def on_train_epoch_end(self) -> None:
+        x_train = np.array(self.train_predictions['true'])
+        y_train = np.array(self.train_predictions['prediction'])
+        x_val = np.array(self.val_predictions['true'])
+        y_val = np.array(self.val_predictions['prediction'])
+        mae_train = np.mean(np.abs(x_train - y_train))
+        mae_val = np.mean(np.abs(x_val - y_val))
+        for logger in self.loggers:
+            logger.log_metrics({'mae_train': mae_train, 'mae_val': mae_val}, step=self.current_epoch)
 
     def on_train_end(self) -> None:
         x_train = np.array(self.train_predictions['true'])
@@ -63,9 +74,10 @@ class MInterface(pl.LightningModule):
     def validation_step(self, batch, batch_idx):
         # x, edge_index, edge_weight, t_energy = batch.x, batch.edge_index, batch.edge_attr, batch.y
         p_energy = self(batch)
+        y = batch.y
         self.val_predictions['prediction'].extend(p_energy.cpu().numpy())
-        self.val_predictions['true'].extend(batch.y.cpu().numpy())
-        loss = self.loss_function(torch.squeeze(p_energy), batch.y)
+        self.val_predictions['true'].extend(y.cpu().numpy())
+        loss = self.loss_function(torch.squeeze(p_energy), y)
         self.log('val_loss', loss, on_step=False, on_epoch=True, prog_bar=True, batch_size=self.hparams.batch_size)
         return {'loss': loss, 'preds': p_energy}
 
@@ -75,10 +87,11 @@ class MInterface(pl.LightningModule):
     def test_step(self, batch, batch_idx):
         # Here we just reuse the validation_step for testing
         p_energy = self(batch)
+        y = batch.y
         self.test_predictions['prediction'].extend(p_energy.cpu().numpy())
-        self.test_predictions['true'].extend(batch.y.cpu().numpy())
+        self.test_predictions['true'].extend(y.cpu().numpy())
         # loss = self.loss_function(torch.squeeze(p_energy), batch.y)
-        return self.loss_function(torch.squeeze(p_energy), batch.y)
+        return self.loss_function(torch.squeeze(p_energy), y)
 
     def on_test_end(self):
         # Make the Progress Bar leave there

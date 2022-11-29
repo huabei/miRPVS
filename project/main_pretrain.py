@@ -45,7 +45,7 @@ def load_logger(args):
 
 
 def main(args):
-    pl.seed_everything(args.seed)
+    # pl.seed_everything(args.seed)
     load_path = load_model_path_by_args(args)
     data_module = DInterface(**vars(args))
 
@@ -64,6 +64,7 @@ def main(args):
 
 if __name__ == '__main__':
     parser = parse_args()
+    parser.add_argument('--num_heads', type=int, default=1)
     # yaml 文件
 
     with open('config/default_3a6p_molecular_e3nn_transformer_pretrain.yaml', 'r') as f:

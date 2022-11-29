@@ -39,7 +39,8 @@ class MInterface(pl.LightningModule):
         loss = self.loss_function(torch.squeeze(logits), batch.y)
         # train metrics
         preds = torch.argmax(logits, dim=1)
-        acc = self.accuracy(preds, batch.y)
+        with torch.no_grad():
+            acc = self.accuracy(preds, batch.y)
         self.log('train_loss', loss, on_step=True, on_epoch=True, prog_bar=True, batch_size=self.hparams.batch_size)
         self.log('train_acc', acc, on_step=True, on_epoch=True, prog_bar=True, batch_size=self.hparams.batch_size)
         return loss
@@ -93,6 +94,7 @@ class MInterface(pl.LightningModule):
         y = torch.concat(self.test_predictions['prediction'], dim=0)
         pres = torch.argmax(y, dim=1)
         acc = self.accuracy(pres, x)
+        print(torch.mean(y, dim=0))
         # test_r2 = r2_score(x, y)
         # test_fig = plot_fit_confidence_bond(x, y, test_r2, annot=False)
         # for logger in self.loggers:

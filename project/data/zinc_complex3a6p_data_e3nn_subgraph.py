@@ -28,7 +28,7 @@ class ZincComplex3a6pDataE3nnSubgraph(InMemoryDataset):
 
     @property
     def processed_file_names(self):
-        return ['Ligands_Graph_Data_e3nn_subgraph.pt']
+        return ['Ligands_Graph_Data_e3nn_subgraph_constant_unknown.pt']
 
     def download(self):
         # Download to `self.raw_dir`
@@ -66,8 +66,8 @@ class ZincComplex3a6pDataE3nnSubgraph(InMemoryDataset):
                 # print(xyz)
             # transform symbols to numbers, such as:{'C':0, 'P':1, ...}
             atoms = np.array([self.elements_dict[a] for a in atoms])
-            one_hot = np.zeros((atoms.size, len(self.elements_dict)))
-            one_hot[np.arange(atoms.size), atoms] = 1
+            # one_hot = np.zeros((atoms.size, len(self.elements_dict)))
+            # one_hot[np.arange(atoms.size), atoms] = 1
 
             pos = torch.tensor(atom_coords, dtype=torch.float32)
             # create edges
@@ -84,19 +84,24 @@ class ZincComplex3a6pDataE3nnSubgraph(InMemoryDataset):
                 #                                                             relabel_nodes=True,
                 #                                                             num_nodes=len(atoms))
                 # 获取每个原子的子图
-                label = torch.tensor(atoms[c_node], dtype=torch.long)
-                sub_edge_index_ = edge_index.T[edge_index[1] == c_node].T
+                label = torch.tensor(atoms[c_node], dtype=torch.float32)
+                edge_mask = edge_index[1] == c_node
+                sub_edge_index_ = edge_index.T[edge_mask].T
                 subset = sub_edge_index_[0]
-                edge_attr_ = edge_attr[subset]
+                # 边的特征
+                edge_attr_ = edge_attr[edge_mask]
                 # 重新标记节点
                 node_idx = label.new_full((num_nodes, ), -1)
                 node_idx[subset] = torch.arange(subset.size(0))
                 sub_edge_index_ = node_idx[sub_edge_index_]
-                x = torch.tensor(atoms[:][subset], dtype=torch.long)
+                # 节点特征
+                x = torch.tensor(atoms[:][subset], dtype=torch.float32)
                 # 随机将中心原子设为一个新值
-                x[sub_edge_index_[1][0]] = torch.randint(0, len(self.elements_dict), (1,))
-                x_one_hot = torch.zeros((x.size(0), len(self.elements_dict)), dtype=torch.long)
+                # x[sub_edge_index_[1][0]] = torch.randint(0, len(self.elements_dict), (1,))
+                x[sub_edge_index_[1][0]] = torch.tensor([len(self.elements_dict)], dtype=torch.long)
+                x_one_hot = torch.zeros((x.size(0), len(self.elements_dict)+1), dtype=torch.long)
                 x_one_hot[torch.arange(len(subset)), x] = torch.tensor([1], dtype=torch.long)
+                x_one_hot = x_one_hot.to(torch.float32)
                 # edge_attr_ = edge_attr[edge_mask]
                 total_ligands_graph.append(Data(x=x_one_hot, edge_index=sub_edge_index_, edge_attr=edge_attr_, y=label))
 

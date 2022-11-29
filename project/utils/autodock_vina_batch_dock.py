@@ -72,6 +72,6 @@ def main(params):
 
 if __name__ == '__main__':
     _, start, stop = sys.argv
-    params = dict(slicer=slice(eval(start), eval(stop)), receptor_name='3a6p_new')
+    params = dict(slicer=slice(eval(start), eval(stop)), receptor_name='3a6p_dOthers_aH')
     main(params)
     # pass

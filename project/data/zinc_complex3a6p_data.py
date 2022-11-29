@@ -9,6 +9,7 @@ import torch
 import numpy as np
 from scipy import spatial
 from torch.utils.data import random_split
+from tqdm import tqdm
 
 
 class ZincComplex3a6pData(InMemoryDataset):
@@ -46,7 +47,7 @@ class ZincComplex3a6pData(InMemoryDataset):
         # items = list()
         # make every data graph
         total_ligands_graph = list()
-        for data in data_original:
+        for data in tqdm(data_original):
             # get every row
             data = data.strip().split('\n')
             # get data id
@@ -90,4 +91,5 @@ class ZincComplex3a6pData(InMemoryDataset):
 
 
 if __name__ == '__main__':
+    data = ZincComplex3a6pData('3a6p/zinc_drug_like_100k/3a6p_pocket5_202020')
     pass

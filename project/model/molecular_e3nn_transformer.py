@@ -104,7 +104,6 @@ class MolecularE3nnTransformer(Module):
         # m_x = scatter_sum(x, batch.batch, dim=0)
         # properties = self.w_property(m_x)
         # return properties
-
         # e3nn 层
         # num_basis = self.number_of_basis
         edge_length_embedded = soft_one_hot_linspace(
@@ -123,7 +122,7 @@ class MolecularE3nnTransformer(Module):
         # # e = self.e3nn_conv2(x, batch.edge_index[0], batch.edge_index[1], batch.edge_attr, edge_length_embedding)
         # edge_sh = o3.spherical_harmonics(irreps_sh, batch.edge_attr, normalize=True, normalization='component')
         for m in range(self.hidden_layers):
-            h_x = self.m_gcn[m](x, batch.edge_index[1], batch.edge_index[0], edge_sh, edge_weight_cutoff, edge_length_embedded)
+            h_x = self.m_gcn[m](x, batch.edge_index[0], batch.edge_index[1], edge_sh, edge_weight_cutoff, edge_length_embedded)
             x = F.relu(h_x) + x
         for i in range(self.out_layers):
             x = torch.relu(self.lin[i](x))
