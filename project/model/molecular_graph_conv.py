@@ -41,9 +41,9 @@ class MolecularGraphConv(Module):
         x = self.embd(batch.x)
         for m in range(self.hidden_layers):
             h_x = self.m_gcn[m](x=x, edge_index=batch.edge_index, edge_weight=batch.edge_attr)
-            x = F.normalize(h_x+x, 2, 1)
+            x = F.normalize(h_x+F.relu(x), 2, 1)
         for i in range(self.out_layers):
             x = torch.relu(self.lin[i](x))
         m_x = scatter_sum(x, batch.batch, dim=0)
         properties = self.w_property(m_x)
-        return properties
+        return torch.squeeze(properties, dim=1)

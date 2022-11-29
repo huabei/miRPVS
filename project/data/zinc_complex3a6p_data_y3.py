@@ -12,7 +12,7 @@ from torch.utils.data import random_split
 from tqdm import tqdm
 
 
-class ZincComplex3a6pDataY2(InMemoryDataset):
+class ZincComplex3a6pDataY3(InMemoryDataset):
 
     def __init__(self, data_dir, transform=None, pre_transform=None, pre_filter=None, **kwargs):
         self.elements_dict = {'C': 0, 'H': 1, 'N': 2, 'O': 3, 'F': 4, 'S': 5, 'CL': 6, 'BR': 7, 'I': 8, 'P': 9}

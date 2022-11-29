@@ -96,7 +96,7 @@ class MolecularGnnSuperGamma(Module):
             x = torch.relu(self.lin[i](x))
         m_x = scatter_sum(x, batch.batch, dim=0)
         properties = self.w_property(m_x)
-        return properties
+        return torch.squeeze(properties, dim=1)
 
 
 if __name__ == '__main__':

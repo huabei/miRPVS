@@ -9,7 +9,7 @@ lr_decay_min_lr: 1e-5
 lr_decay_rate: 0.99
 
 # data
-dataset: zinc_complex3a6p_data_y2
+dataset: zinc_complex3a6p_data_y3
 data_dir: 'data/3a6p/zinc_drug_like_100k/3a6p_pocket5_202020'
 log_dir: 'log/gcn'
 model_name: molecular_gnn_super_gamma
