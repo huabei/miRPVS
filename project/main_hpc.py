@@ -106,7 +106,7 @@ if __name__ == '__main__':
 
     # yaml 文件
 
-    with open('config/default_3a6p_molecular_e3nn_transformer.yaml', 'r') as f:
+    with open('config/constant_config_hpc.yaml', 'r') as f:
         default_arg = yaml.safe_load(f)
 
     # Reset Some Default Trainer Arguments' Default Values

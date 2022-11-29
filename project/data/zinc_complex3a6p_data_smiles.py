@@ -150,5 +150,5 @@ class ZincComplex3a6pDataSmiles(InMemoryDataset):
 
 
 if __name__ == '__main__':
-    data = ZincComplex3a6pData('3a6p/zinc_drug_like_100k/3a6p_pocket5_202020')
+    data = ZincComplex3a6pDataSmiles('3a6p/zinc_drug_like_100k/3a6p_pocket5_202020')
     pass

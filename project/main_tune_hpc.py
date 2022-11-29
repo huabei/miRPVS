@@ -17,7 +17,7 @@ if __name__ == '__main__':
         main(args)
     num_samples = 256
     gpu_per_trial = 0.5
-    project = 'molecular_gnn_super_gamma_tune'
+    project = 'gcn_smiles_tune'
     comment = 'mature_tune'
     constant_dir = 'config/constant_config_hpc.yaml'
     config = {
@@ -29,5 +29,6 @@ if __name__ == '__main__':
         "batch_size": tune.randint(32, 256),
         "weight_decay": tune.loguniform(1e-6, 1e-4),
         "lr_decay_min_lr": tune.loguniform(1e-6, 1e-4),
+        "lr_scheduler": tune.choice(['cosine', 'step']),
     }
     main_tune(trainable, config, num_samples, gpu_per_trial, project, comment, constant_dir)
