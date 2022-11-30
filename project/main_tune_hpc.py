@@ -17,7 +17,7 @@ if __name__ == '__main__':
         main(args)
     num_samples = 256
     gpu_per_trial = 0.5
-    project = 'gcn_smiles_tune'
+    project = 'graph_conv_smiles_tune'
     comment = 'mature_tune'
     constant_dir = 'config/constant_config_hpc.yaml'
     config = {
