@@ -14,16 +14,29 @@ import sys
 
 
 def main(params):
+    receptor_dict = {'3a6p': '3a6p_dOthers_apH', '4z4c': '4z4c_dOthers_apH',
+                     '4z4d': '4z4d_dOthers_apH', '6cbd': '6cbd_dOthers_apH'}
+    receptor_config = {'3a6p': dict(center=[11.944, 77.055, 34.959], box_size=[20, 20, 20]),
+                       '4z4c': dict(center=[65.072, -9.582, 17.018], box_size=[34, 50, 32]),
+                       '4z4d': dict(center=[60.345, -15.032, 23.241], box_size=[22, 30, 20]),
+                       '6cbd': dict(center=[56.706, -12.643, 11.284], box_size=[18, 18, 16])}
+    ligands_file_name = params['ligand_file']
     v = Vina(sf_name='vina')
     # 设置受体文件
-    receptor_name = params['receptor_name']
+    receptor_name = receptor_dict[params['receptor_name']]
     v.set_receptor(rigid_pdbqt_filename=receptor_name+'.pdbqt')
     # 计算受体力场
-    # 3a6p:center=[11.944, 77.055, 34.959], box_size=[40, 40, 40]
-    v.compute_vina_maps(center=[11.944, 77.055, 34.959], box_size=[20, 20, 20], spacing=0.375)
+    # 3a6p
+    # v.compute_vina_maps(center=[11.944, 77.055, 34.959], box_size=[20, 20, 20], spacing=0.375)
+    # 4z4c
+    v.compute_vina_maps(spacing=0.375, **receptor_config[params['receptor_name']])
+    # 4z4d
+    # v.compute_vina_maps(center=[60.345, -15.032, 23.241], box_size=[22, 30, 20], spacing=0.375)
+    # 6cbd
+    # v.compute_vina_maps(center=[56.706, -12.643, 11.284], box_size=[18, 18, 16], spacing=0.375)
     # v.set_ligand_from_file("test_ligand.pdbqt")
     elements_list = ['C', 'H', 'O', 'N', 'S', 'P', 'BR', 'CL', 'F', 'I']
-    ligands_file_name = 'zinc/zinc_drug_like_3d_100k_to_10k_rand.pdbqt.gz'
+    # ligands_file_name = 'zinc/zinc_drug_like_3d_100k_to_10k_rand.pdbqt.gz'
     # ligands_file_name = 'test_ligand.pdbqt.gz'
     filter_ = partial(ele_filter, elements_list=elements_list)
     ligands = ZincPdbqt(ligands_file_name, filter_=[filter_])
@@ -71,7 +84,7 @@ def main(params):
 
 
 if __name__ == '__main__':
-    _, start, stop = sys.argv
-    params = dict(slicer=slice(eval(start), eval(stop)), receptor_name='3a6p_dOthers_aH')
+    _, receptor, ligand_file, start, stop = sys.argv
+    params = dict(slicer=slice(eval(start), eval(stop)), receptor_name=receptor, ligand_file=ligand_file)
     main(params)
     # pass
