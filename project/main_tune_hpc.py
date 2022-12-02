@@ -17,7 +17,7 @@ if __name__ == '__main__':
         main(args)
     num_samples = 256
     gpu_per_trial = 0.5
-    project = 'graph_conv_smiles_tune'
+    project = 'molecule_gnn_y3_tune'
     comment = 'mature_tune'
     constant_dir = 'config/constant_config_hpc.yaml'
     config = {
@@ -25,7 +25,7 @@ if __name__ == '__main__':
         "lr": tune.loguniform(1e-4, 1e-2),
         "hidden_channels": tune.randint(64, 512),
         "out_layers": tune.randint(3, 10),
-        "hidden_layers": tune.randint(1, 10),
+        "hidden_layers": tune.randint(1, 16),
         "batch_size": tune.randint(32, 256),
         "weight_decay": tune.loguniform(1e-6, 1e-4),
         "lr_decay_min_lr": tune.loguniform(1e-6, 1e-4),
