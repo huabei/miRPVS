@@ -1,4 +1,4 @@
-from torch_geometric.nn import GATConv
+from torch_geometric.nn import GATConv, GAT, LayerNorm, GraphNorm, GATv2Conv
 import torch
 from torch.nn import Linear, Parameter, Embedding, ModuleList, Module
 from torch_geometric.nn import MessagePassing, MLP
@@ -10,10 +10,9 @@ from torch_scatter import scatter_sum
 
 
 class MolecularGatConv(Module):
-    """这是MolecularGNN那篇文献的pyg实现"""
 
     def __init__(self, in_channels: int, hidden_channels: int, out_channels: int, hidden_layers: int, out_layers: int,
-                 dropout=0, norm=None):
+                 heads: int, dropout=0, norm=None):
         """
         这个是自定义的模型
         :param in_channels: 元素个数
@@ -30,8 +29,12 @@ class MolecularGatConv(Module):
 
         self.embd = Embedding(in_channels, hidden_channels, dtype=torch.float32)
 
-        self.m_gcn = ModuleList([GATConv(hidden_channels, hidden_channels, edge_dim=1) for _ in range(hidden_layers)])
-
+        # self.m_gcn = ModuleList([GATConv(hidden_channels, hidden_channels, edge_dim=1, heads=6, concat=False)
+        #                         for _ in range(hidden_layers)])
+        self.m_gcn = ModuleList([GATv2Conv(hidden_channels, hidden_channels, edge_dim=1, heads=heads, concat=False)
+                                for _ in range(hidden_layers)])
+        self.g_norm = ModuleList([LayerNorm(hidden_channels) for _ in range(hidden_layers)])
+        # self.g_norm = ModuleList([GraphNorm(hidden_channels) for _ in range(hidden_layers)])
         self.lin = ModuleList([Linear(hidden_channels, hidden_channels) for _ in range(out_layers)])
         self.w_property = Linear(hidden_channels, out_channels)
         # self.mlp = MLP(in_channels=hidden_channels, hidden_channels=hidden_channels,
@@ -41,9 +44,13 @@ class MolecularGatConv(Module):
         x = self.embd(batch.x)
         for m in range(self.hidden_layers):
             h_x = self.m_gcn[m](x=x, edge_index=batch.edge_index, edge_attr=batch.edge_attr)
-            x = F.normalize(h_x, 2, 1)
+            # x = F.normalize(h_x+x, 2, 1)
+            x = self.g_norm[m](h_x+x)
+        # m_x = scatter_sum(x, batch.batch, dim=0)
+        # 获取全局原子的特征
+        m_x = x[torch.where(batch.x == 0)]
         for i in range(self.out_layers):
-            x = torch.relu(self.lin[i](x))
-        m_x = scatter_sum(x, batch.batch, dim=0)
+            m_x = torch.relu(self.lin[i](m_x))
+            # m_x = F.normalize(m_x, 2, 1)
         properties = self.w_property(m_x)
         return torch.squeeze(properties, dim=1)

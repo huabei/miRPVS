@@ -12,7 +12,7 @@ from torch.utils.data import random_split
 from tqdm import tqdm
 from rdkit import Chem
 from collections import defaultdict
-from torch_geometric.utils import dense_to_sparse, add_self_loops
+from torch_geometric.utils import dense_to_sparse, add_self_loops, to_undirected
 
 
 def create_atoms(mol, atom_dict):
@@ -82,7 +82,7 @@ def extract_fingerprints(radius, atoms, i_jbond_dict,
     return np.array(nodes)
 
 
-class ZincComplex3a6pDataSmiles(InMemoryDataset):
+class ZincComplex3a6pDataSmilesGlobal(InMemoryDataset):
 
     def __init__(self, data_dir, transform=None, pre_transform=None, pre_filter=None, **kwargs):
         self.elements_dict = {'C': 0, 'H': 1, 'N': 2, 'O': 3, 'F': 4, 'S': 5, 'CL': 6, 'BR': 7, 'I': 8, 'P': 9}
@@ -96,7 +96,7 @@ class ZincComplex3a6pDataSmiles(InMemoryDataset):
 
     @property
     def processed_file_names(self):
-        return ['Ligands_Graph_Data_Smiles.pt']
+        return ['Ligands_Graph_Data_Smiles_Global.pt']
 
     def download(self):
         # Download to `self.raw_dir`
@@ -108,7 +108,8 @@ class ZincComplex3a6pDataSmiles(InMemoryDataset):
         # read file
         atom_dict = defaultdict(lambda: len(atom_dict))
         bond_dict = defaultdict(lambda: len(bond_dict))
-        fingerprint_dict = defaultdict(lambda: len(fingerprint_dict))
+        # 把0留作全局的node
+        fingerprint_dict = defaultdict(lambda: len(fingerprint_dict)+1)
         edge_dict = defaultdict(lambda: len(edge_dict))
         with open(self.raw_paths[0], 'r') as f:
             # first line is property_type
@@ -134,9 +135,18 @@ class ZincComplex3a6pDataSmiles(InMemoryDataset):
             adjacency = Chem.GetAdjacencyMatrix(mol)
             # edge_index = torch.tensor(np.where(adjacency == 1), dtype=torch.long)
             edge_index, edge_attr = dense_to_sparse(torch.tensor(adjacency, dtype=torch.float32))
+            # 添加全局原子的连接
+            edge_index_g_src = torch.tensor(list(range(molecular_size)), dtype=torch.long) + 1
+            edge_index_g_dst = torch.tensor([0]*molecular_size, dtype=torch.long)
+            edge_index_g = torch.stack([edge_index_g_src, edge_index_g_dst], dim=0)
+            edge_index_g = to_undirected(edge_index_g)
+            edge_index = torch.cat([edge_index_g, edge_index], dim=1)
+            # 添加全局原子的属性
+            edge_attr = torch.ones(edge_index.shape[1], dtype=torch.float32)
             edge_index, edge_attr = add_self_loops(edge_index, edge_attr, fill_value=1)
+            fingerprints_g = torch.concat((torch.tensor([0]), torch.tensor(fingerprints, dtype=torch.long)), dim=0)
             # 构建全连接图的edge_index
-            d = Data(x=torch.tensor(fingerprints, dtype=torch.long), edge_index=edge_index, edge_attr=edge_attr,
+            d = Data(x=fingerprints_g, edge_index=edge_index, edge_attr=edge_attr,
                      y=property)
             # return d
             total_ligands_graph.append(d)
@@ -151,5 +161,5 @@ class ZincComplex3a6pDataSmiles(InMemoryDataset):
 
 
 if __name__ == '__main__':
-    data = ZincComplex3a6pDataSmiles('3a6p/zinc_drug_like_100k/3a6p_pocket5_202020')
+    data = ZincComplex3a6pDataSmilesGlobal('3a6p/zinc_drug_like_100k/3a6p_pocket5_202020')
     pass

@@ -19,6 +19,7 @@ for i in range(node_num):
         commd = 'sbatch batch_dock.sh {} {} {} {}'.format(receptor, ligand_dataset, job_per_node * i, None)
     else:
         commd = 'sbatch batch_dock.sh {} {} {} {}'.format(receptor, ligand_dataset, job_per_node * i, job_per_node * (i+1))
+    print(commd)
     os.system(commd)
     time.sleep(10)
 
