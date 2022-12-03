@@ -1,4 +1,4 @@
-from torch_geometric.nn import GATConv, GAT, LayerNorm, GraphNorm, GATv2Conv
+from torch_geometric.nn import TransformerConv, GAT, LayerNorm, GraphNorm
 import torch
 from torch.nn import Linear, Parameter, Embedding, ModuleList, Module
 from torch_geometric.nn import MessagePassing, MLP
@@ -9,7 +9,7 @@ from torch_geometric.data import Batch
 from torch_scatter import scatter_sum
 
 
-class MolecularGatConv(Module):
+class MolecularGraphTransformer(Module):
 
     def __init__(self, in_channels: int, hidden_channels: int, out_channels: int, hidden_layers: int, out_layers: int,
                  heads: int, dropout=0, norm=None):
@@ -29,10 +29,11 @@ class MolecularGatConv(Module):
 
         self.embd = Embedding(in_channels, hidden_channels, dtype=torch.float32)
 
-        # self.m_gcn = ModuleList([GATConv(hidden_channels, hidden_channels, edge_dim=1, heads=6, concat=False)
-        #                         for _ in range(hidden_layers)])
-        self.m_gcn = ModuleList([GATv2Conv(hidden_channels, hidden_channels, edge_dim=1, heads=heads, concat=False)
+        self.m_gcn = ModuleList([TransformerConv(hidden_channels, hidden_channels, heads=6, concat=False)
                                 for _ in range(hidden_layers)])
+        # self.m_gcn = ModuleList([GATv2Conv(hidden_channels, hidden_channels, edge_dim=1, heads=heads, concat=False)
+        #                         for _ in range(hidden_layers)])
+
         self.g_norm = ModuleList([LayerNorm(hidden_channels) for _ in range(hidden_layers)])
         # self.g_norm = ModuleList([GraphNorm(hidden_channels) for _ in range(hidden_layers)])
         self.lin = ModuleList([Linear(hidden_channels, hidden_channels) for _ in range(out_layers)])
@@ -43,7 +44,7 @@ class MolecularGatConv(Module):
     def forward(self, batch: Batch):
         x = self.embd(batch.x)
         for m in range(self.hidden_layers):
-            h_x = self.m_gcn[m](x=x, edge_index=batch.edge_index, edge_attr=batch.edge_attr)
+            h_x = self.m_gcn[m](x=x, edge_index=batch.edge_index)
             # x = F.normalize(h_x+x, 2, 1)
             x = torch.relu(self.g_norm[m](h_x+x))
         # m_x = scatter_sum(x, batch.batch, dim=0)

@@ -1,23 +1,23 @@
-lr_scheduler: step
+lr_scheduler: cosine
 lr: 1e-4
 lr_decay_min_lr: 1e-6
-lr_decay_step: 707
+lr_decay_step: 1000
 lr_decay_rate: 0.9
 #weight_decay: 0.01
 
 dataset: zinc_complex3a6p_data_smiles_global
 data_dir: 'data/3a6p/zinc_drug_like_100k/3a6p_pocket5_202020'
-log_dir: 'log/gat_conv_smiles'
-model_name: molecular_gat_conv
+log_dir: 'log/graph_transformer_smiles'
+model_name: molecular_graph_transformer
 max_epochs: 500
 gpus: 1
 #project: gcn_3a6p
 in_channels: 483
 hidden_channels: 256
 out_channels: 1
-hidden_layers: 6
+hidden_layers: 3
 out_layers: 6
-heads: 4
+heads: 6
 
-project: gat_conv_smiles
-comment: 'gat conv smiles add global node'
+project: graph_transformer_smiles
+comment: 'graph transformer smiles add global node'
