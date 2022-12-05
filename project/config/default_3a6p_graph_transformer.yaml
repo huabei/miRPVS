@@ -15,9 +15,9 @@ gpus: 1
 in_channels: 483
 hidden_channels: 256
 out_channels: 1
-hidden_layers: 3
+hidden_layers: 6
 out_layers: 6
-heads: 6
+heads: 12
 
 project: graph_transformer_smiles
 comment: 'graph transformer smiles add global node'
