@@ -17,7 +17,7 @@ if __name__ == '__main__':
         main(args)
     num_samples = 256
     gpu_per_trial = 0.5
-    project = 'gat_conv_smiles_global_node_tune'
+    project = '4z4d_molecule_gnn_tune'
     comment = 'mature_tune'
     constant_dir = 'config/constant_config_hpc.yaml'
     config = {
@@ -30,6 +30,6 @@ if __name__ == '__main__':
         "weight_decay": tune.loguniform(1e-6, 1e-4),
         "lr_decay_min_lr": tune.loguniform(1e-6, 1e-4),
         "lr_scheduler": tune.choice(['cosine', 'step']),
-        "heads": tune.randint(1, 16)
+        # "heads": tune.randint(1, 16)
     }
     main_tune(trainable, config, num_samples, gpu_per_trial, project, comment, constant_dir)
