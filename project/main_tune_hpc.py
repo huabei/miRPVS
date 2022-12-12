@@ -17,7 +17,7 @@ if __name__ == '__main__':
         main(args)
     num_samples = 256
     gpu_per_trial = 0.5
-    project = '4z4d_molecule_gnn_tune'
+    project = '3a6p_smiles_radius0_molecule_gnn_tune'
     comment = 'mature_tune'
     constant_dir = 'config/constant_config_hpc.yaml'
     config = {
