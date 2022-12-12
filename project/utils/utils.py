@@ -12,6 +12,7 @@ import pandas as pd
 import numpy as np
 import copy
 import functools
+from rdkit.Chem import Descriptors
 
 
 def load_model_path(root=None, version=None, v_num=None, best=False):
@@ -372,5 +373,4 @@ def map_and_conjunction(func, iterables):
     """
     assert len(iterables) > 1, 'iterables must be more than 1'
     return functools.reduce(lambda x, y: x+y, list(map(func, iterables)))
-
 

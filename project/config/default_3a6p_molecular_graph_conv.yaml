@@ -1,21 +1,21 @@
-lr_scheduler: step
+lr_scheduler: cosine
 lr: 1e-4
 lr_decay_min_lr: 1e-6
-lr_decay_step: 10
+lr_decay_step: 250
 lr_decay_rate: 0.99
 
-dataset: zinc_complex3a6p_data_smiles
+dataset: zinc_complex3a6p_data_smiles_radius0
 data_dir: 'data/3a6p/zinc_drug_like_100k/3a6p_pocket5_202020'
 log_dir: 'log/graph_conv_smiles'
 model_name: molecular_gnn_smiles
 max_epochs: 500
 gpus: 1
 #project: gcn_3a6p
-in_channels: 482
+in_channels: 14
 hidden_channels: 256
 out_channels: 1
 hidden_layers: 12
 out_layers: 6
 
-project: graph_conv_smiles
-comment: 'graph conv smiles test'
+project: molecular gnn smiles
+comment: 'molecular gnn node features are atom type'
