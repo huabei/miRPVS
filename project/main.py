@@ -116,7 +116,7 @@ if __name__ == '__main__':
     parser = parse_args()
 
     # yaml 文件
-    with open('config/default_3a6p_molecular_graph_conv.yaml', 'r') as f:
+    with open('config/default_3a6p_molecular_gin.yaml', 'r') as f:
         default_arg = yaml.safe_load(f)
 
     # Reset Some Default Trainer Arguments' Default Values

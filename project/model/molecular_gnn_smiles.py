@@ -11,7 +11,7 @@ from torch_geometric.utils import add_self_loops, degree
 from torch import Tensor
 from torch.nn import functional as F
 from torch_geometric.data import Batch
-from torch_scatter import scatter_sum
+from torch_scatter import scatter_sum, scatter_mean
 
 
 class MolecularGCN(MessagePassing):
@@ -82,7 +82,8 @@ class MolecularGnnSmiles(Module):
         x = self.embd(batch.x)
         for m in range(self.hidden_layers):
             x = self.m_gcn[m](x=x, edge_index=batch.edge_index)
-        m_x = scatter_sum(x, batch.batch, dim=0)
+        # m_x = scatter_sum(x, batch.batch, dim=0)
+        m_x = scatter_mean(x, batch.batch, dim=0)
         for i in range(self.out_layers):
             m_x = torch.relu(self.lin[i](m_x))
         properties = self.w_property(m_x)

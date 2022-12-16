@@ -147,12 +147,9 @@ class MInterface(pl.LightningModule):
         # Please always name your model file name as `snake_case.py` and
         # class name corresponding `CamelCase`.
         camel_name = ''.join([i.capitalize() for i in name.split('_')])
-        try:
-            Model = getattr(importlib.import_module(
-                '.' + name, package=__package__), camel_name)
-        except:
-            raise ValueError(
-                f'Invalid Module File Name or Invalid Class Name {name}.{camel_name}!')
+        Model = getattr(importlib.import_module(
+            '.' + name, package=__package__), camel_name)
+
         self.model = self.instancialize(Model)
 
     def instancialize(self, Model, **other_args):

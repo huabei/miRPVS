@@ -1,0 +1,21 @@
+lr_scheduler: cosine
+lr: 1e-4
+lr_decay_min_lr: 1e-6
+lr_decay_steps: 500
+lr_decay_rate: 0.99
+
+dataset: zinc_complex3a6p_data_smiles_radius0
+data_dir: 'data/3a6p/zinc_drug_like_100k/3a6p_pocket5_202020'
+log_dir: 'log/gin_smiles'
+model_name: molecular_gin
+max_epochs: 500
+gpus: 1
+#project: gcn_3a6p
+in_channels: 14
+hidden_channels: 256
+out_channels: 1
+hidden_layers: 6
+out_layers: 6
+
+project: molecular gin smiles
+comment: 'molecular gin node features are atom type'
