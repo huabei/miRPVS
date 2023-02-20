@@ -1,0 +1,15 @@
+num_workers: 4
+seed: 1234
+dataset: zinc_complex3a6p_data
+data_dir: '/mnt/e/Python_Project/SMTarRNA/project/data/3a6p/zinc_drug_like_100k/3a6p_pocket5_202020'
+log_dir: '/mnt/e/Python_Project/SMTarRNA/project/log/tune/gcn_test'
+model_name: molecular_gnn
+loss: mse
+weight_decay: 0.0001
+tune: True
+in_channels: 10
+out_channels: 1
+gpus: 1
+max_epochs: 10
+lr_decay_min_lr: 1e-5
+enable_progress_bar: False

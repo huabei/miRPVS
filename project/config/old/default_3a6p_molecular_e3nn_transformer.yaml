@@ -1,0 +1,32 @@
+
+# checkpoint
+#load_dir: checkpoints/gcn
+# lr
+lr_scheduler: cosine
+lr_decay_steps: 5
+lr: 0.0001
+lr_decay_min_lr: 1e-6
+lr_decay_rate: 0.9
+
+# data
+dataset: zinc_complex3a6p_data_e3nn_number
+data_dir: 'data/3a6p/zinc_drug_like_100k/3a6p_pocket5_202020'
+log_dir: 'log/e3nn_transformer_data_e3nn_number'
+model_name: molecular_e3nn_transformer
+
+# train
+max_epochs: 500
+batch_size: 64
+gpus: 1
+project: gcn_3a6p
+in_channels: 10
+hidden_channels: 128
+out_channels: 1
+hidden_layers: 6
+out_layers: 6
+loss: mse
+accumulate_grad_batches: 2
+# gradient_clip_val: 0.5
+
+# comment
+comment: 'e3nn 5 neighbors number dataset'

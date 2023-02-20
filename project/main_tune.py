@@ -1,13 +1,12 @@
 from pytorch_lightning.loggers import TensorBoardLogger
 from ray import air, tune
-from ray.air import session
 from ray.tune import CLIReporter
-from ray.tune.schedulers import ASHAScheduler, PopulationBasedTraining
-from ray.tune.integration.pytorch_lightning import TuneReportCallback
+from ray.tune.schedulers import ASHAScheduler
 from main import main, parse_args
 import yaml
 import os
 import time
+
 
 def decorator_trainable(func):
     def wrapper(config: dict, constant: dict, project: str, comment: str):

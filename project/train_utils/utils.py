@@ -5,12 +5,12 @@ import pytorch_lightning.callbacks as plc
 def load_callbacks(args):
     # 早停和保存最优模型
     callbacks = [plc.EarlyStopping(
-        monitor=args.trainer.early_stop.monitor,
+        monitor=args.early_stop.monitor,
         mode='min',
-        patience=args.trainer.early_stop.patience,
+        patience=args.early_stop.patience,
     ), plc.ModelCheckpoint(
         dirpath=f'checkpoints/{args.pl_module.model_name}/',
-        monitor=args.trainer.early_stop.monitor,
+        monitor=args.early_stop.monitor,
         filename=args.current_time + 'best-{epoch:02d}-{val_loss:.2f}',
         save_top_k=1,
         mode='min',

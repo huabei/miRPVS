@@ -1,0 +1,43 @@
+
+tune: False
+seed: 1234
+
+project: 4z4d_molecule_gnn
+comment: comment
+
+
+# log_dir: 'log/'
+trainer:
+  lr_scheduler: cosine
+  gpus: 1
+  fast_dev_run: False
+  max_epochs: 100
+  accumulate_grad_batches: 1
+  resume_from_checkpoint: ~
+  deterministic: True
+  auto_lr_find: False
+  auto_scale_batch_size: False
+  wandb: True
+  early_stop:
+    monitor: val_loss
+    patience: 10
+
+pl_data_module:
+  dataset: 'zinc_complex3a6p_data'
+  data_dir: 'data/3a6p/zinc_drug_like_100k/3a6p_pocket5_202020'
+  batch_size: 128
+  num_workers: 8
+
+pl_module:
+  lr: 5e-4
+  weight_decay: 1e-4
+  loss: 'mse'
+  model_name: 'gcn'
+  lr_scheduler: 'step'
+  lr_decay_steps: 1
+  model:
+    input_dim: 96
+    hidden_dim: 128
+    output_dim: 1
+    hidden_layers: 3
+    out_layers: 3

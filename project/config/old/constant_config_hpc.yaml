@@ -1,0 +1,18 @@
+num_workers: 4
+seed: 1234
+lr_decay_step: 500
+# dataset: zinc_complex3a6p_data_smiles
+dataset: zinc_complex3a6p_data_smiles_radius0
+data_dir: '/public/home/hpc192311018/Huabei/project/smtar-rna/project/data/3a6p/zinc_drug_like_100k/3a6p_pocket5_202020'
+log_dir: '/public/home/hpc192311018/Huabei/project/smtar-rna/project/log/tune/3a6p/smiles_radius0_molecule_gnn'
+model_name: molecular_gnn_smiles
+# loss: mse
+# weight_decay: 0.0001
+tune: True
+# in_channels: 483
+in_channels: 14
+out_channels: 1
+gpus: 1
+max_epochs: 500
+# lr_decay_min_lr: 1e-5
+enable_progress_bar: False

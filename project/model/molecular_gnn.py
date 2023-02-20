@@ -15,14 +15,14 @@ from torch_scatter import scatter_sum
 
 
 class MolecularGCN(MessagePassing):
-    def __init__(self, in_channels, out_channels):
+    def __init__(self, input_dim, output_dim):
         """
-        :param in_channels: N_atoms
-        :param out_channels: dim
+        :param input_dim: N_atoms
+        :param output_dim: dim
         """
         super().__init__(aggr='add')  # "Add" aggregation (Step 5).
-        self.gamma = Embedding(in_channels, 1)
-        self.w_atom = Linear(out_channels, out_channels)
+        self.gamma = Embedding(input_dim, 1)
+        self.w_atom = Linear(output_dim, output_dim)
         # 初始化参数
         self.reset_parameters()
 
@@ -31,7 +31,7 @@ class MolecularGCN(MessagePassing):
         # self.w_atom.reset_parameters()
 
     def forward(self, x, x_ori, edge_index, edge_attr):
-        # x has shape [N, in_channels]
+        # x has shape [N, input_dim]
         # edge_index has shape [2, E]
         # Step 1: Add self-loops to the adjacency matrix.
         # edge_index, _ = add_self_loops(edge_index, num_nodes=x.size(0))
@@ -48,7 +48,7 @@ class MolecularGCN(MessagePassing):
         return F.normalize(out + x, 2, 1)
 
     def message(self, x_j, edge_weight):
-        # x_j has shape [E, out_channels]
+        # x_j has shape [E, output_dim]
         # x_j是j节点的特征，即edge_index的第二行的节点的特征
         # Step 4: Normalize node features.
         return edge_weight * x_j
@@ -60,15 +60,15 @@ class MolecularGCN(MessagePassing):
 class MolecularGnn(Module):
     """这是MolecularGNN那篇文献的pyg实现"""
 
-    def __init__(self, in_channels: int, hidden_channels: int, hidden_layers: int, out_layers: int, out_channels=None,
+    def __init__(self, input_dim: int, hidden_dim: int, hidden_layers: int, out_layers: int, output_dim=None,
                  dropout=0, norm=None):
         """
         这个是自定义的模型
-        :param in_channels: 元素个数
-        :param hidden_channels: dim
+        :param input_dim: 元素个数
+        :param hidden_dim: dim
         :param hidden_layers: 隐藏层个数
         :param out_layers: Dense层个数
-        :param out_channels: 输出维度
+        :param output_dim: 输出维度
         :param dropout:
         :param norm:
         """
@@ -76,14 +76,14 @@ class MolecularGnn(Module):
         self.hidden_layers = hidden_layers
         self.out_layers = out_layers
 
-        self.embd = Embedding(in_channels, hidden_channels, dtype=torch.float32)
+        self.embd = Embedding(input_dim, hidden_dim, dtype=torch.float32)
 
-        self.m_gcn = ModuleList([MolecularGCN(in_channels, hidden_channels) for _ in range(hidden_layers)])
+        self.m_gcn = ModuleList([MolecularGCN(input_dim, hidden_dim) for _ in range(hidden_layers)])
 
-        self.lin = ModuleList([Linear(hidden_channels, hidden_channels) for _ in range(out_layers)])
-        self.w_property = Linear(hidden_channels, out_channels)
-        # self.mlp = MLP(in_channels=hidden_channels, hidden_channels=hidden_channels,
-        #                out_channels=out_channels, num_layers=out_layers)
+        self.lin = ModuleList([Linear(hidden_dim, hidden_dim) for _ in range(out_layers)])
+        self.w_property = Linear(hidden_dim, output_dim)
+        # self.mlp = MLP(input_dim=hidden_dim, hidden_dim=hidden_dim,
+        #                output_dim=output_dim, num_layers=out_layers)
 
     def forward(self, batch: Batch):
         x = self.embd(batch.x)

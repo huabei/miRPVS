@@ -1,0 +1,33 @@
+
+# checkpoint
+#load_dir: checkpoints/gcn
+# lr
+lr_scheduler: cosine
+lr_decay_steps: 1
+lr: 0.0001
+lr_decay_min_lr: 1e-5
+lr_decay_rate: 0.9
+
+# data
+dataset: zinc_complex3a6p_data_e3nn_subgraph
+data_dir: 'data/3a6p/zinc_drug_like_100k/3a6p_pocket5_202020'
+log_dir: 'log/e3nn_transformer_data_e3nn_pretrain'
+model_name: molecular_e3nn_transformer_update
+
+# train
+max_epochs: 100
+batch_size: 512
+gpus: 1
+project: et_pretrain
+in_channels: 64
+hidden_channels: 256
+out_channels: 1
+hidden_layers: 12
+out_layers: 3
+num_heads: 12
+loss: cross_entropy
+accumulate_grad_batches: 1
+# gradient_clip_val: 0.5
+
+# comment
+comment: 'e3nn pretrain'

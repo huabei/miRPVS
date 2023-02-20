@@ -8,11 +8,12 @@ from data import DInterface
 import ml_collections as mlc
 from train_utils import load_logger, load_callbacks
 import logging
+import os
 
 def main(args: mlc.ConfigDict):
     logging.info('seed everything')
     pl.seed_everything(args.seed)
-    if args.trainer.wandb:
+    if args.wandb:
         logging.info('Using wandb')
         import wandb
         wandb.login(key='local-8fe6e6b5840c4c05aaaf6aac5ca8c1fb58abbd1f', host='http://localhost:8080')
@@ -23,12 +24,14 @@ def main(args: mlc.ConfigDict):
     model = MInterface(**args.pl_module)
 
     logging.info('loading callbacks and logger')
-    args.callbacks = load_callbacks(args)
-    args.logger = load_logger(args)
+    args.trainer.callbacks = load_callbacks(args)
+    args.trainer.logger = load_logger(args)
     
     logging.info('creating trainer')
-    trainer = Trainer.from_argparse_args(args)
-    
+    # print(args.trainer.accelerator, type(args.trainer.devices))
+    trainer = Trainer(**args.trainer)
+    print(trainer.accelerator, trainer.max_epochs)
+    raise Exception('debug')
     logging.info('start training')
     trainer.fit(model, data_module)
     
@@ -38,6 +41,7 @@ def main(args: mlc.ConfigDict):
 
 if __name__ == '__main__':
     from config.config import set_default_config
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     cfg = mlc.ConfigDict()
     set_default_config(cfg)
     '''
@@ -50,7 +54,7 @@ if __name__ == '__main__':
                         model: ConfigDict
     '''
     parser = ArgumentParser()
-    parser.add_argument('--config', type=str, default='config/default_3a6p_molecular_gin.yaml')
+    parser.add_argument('-c', '--config', type=str, default='config/default_3a6p_molecular_gin.yaml')
     args = parser.parse_args()
     cfg.config_file = args.config
     
@@ -61,5 +65,7 @@ if __name__ == '__main__':
 
     # 重置一些默认参数
     cfg.update(default_arg)
+    if not os.path.exists(cfg.log_dir):
+        os.makedirs(cfg.log_dir)
 
     main(cfg)

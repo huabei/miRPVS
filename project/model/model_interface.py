@@ -11,7 +11,6 @@ import torch.optim.lr_scheduler as lrs
 import pytorch_lightning as pl
 from torch_geometric.data import Data
 from collections import defaultdict
-import wandb
 import matplotlib.pyplot as plt
 from pytorch_lightning.loggers import WandbLogger, TensorBoardLogger
 
@@ -140,7 +139,8 @@ class MInterface(pl.LightningModule):
         Model = getattr(importlib.import_module(
             '.' + name, package=__package__), camel_name)
 
-        self.model = self.instancialize(Model)
+        # self.model = self.instancialize(Model)
+        self.model = Model(**self.hparams.model)
 
     def instancialize(self, Model, **other_args):
         """ Instancialize a model using the corresponding parameters

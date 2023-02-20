@@ -1,6 +1,5 @@
 import collections
 import os
-from pathlib2 import Path
 import gzip
 import re
 from tqdm import tqdm
@@ -13,70 +12,6 @@ import numpy as np
 import copy
 import functools
 from rdkit.Chem import Descriptors
-
-
-def load_model_path(root=None, version=None, v_num=None, best=False):
-    """ When best = True, return the best model's path in a directory 
-        by selecting the best model with the largest epoch. If not, return
-        the last model saved. You must provide at least one of the 
-        first three args.
-    Args: 
-        root: The root directory of checkpoints. It can also be a
-            model ckpt file. Then the function will return it.
-        version: The name of the version you are going to load.
-        v_num: The version's number that you are going to load.
-        best: Whether return the best model.
-    """
-
-    def sort_by_epoch(path):
-        name = path.stem
-        epoch = int(name.split('-')[1].split('=')[1])
-        return epoch
-
-    def generate_root():
-        if root is not None:
-            return root
-        elif version is not None:
-            return str(Path('lightning_logs', version, 'checkpoints'))
-        else:
-            return str(Path('lightning_logs', f'version_{v_num}', 'checkpoints'))
-
-    if root == version == v_num == None:
-        return None
-
-    root = generate_root()
-    if Path(root).is_file():
-        return root
-    if best:
-        files = [i for i in list(Path(root).iterdir()) if i.stem.startswith('best')]
-        files.sort(key=sort_by_epoch, reverse=True)
-        res = str(files[0])
-    else:
-        res = str(Path(root) / 'last.ckpt')
-    return res
-
-
-def load_model_path_by_args(args):
-    return load_model_path(root=args.load_dir, version=args.load_ver, v_num=args.load_v_num)
-
-
-def check_exists(index_file: str, root_dir: str) -> list:
-    """
-    this function to check download file exists
-    :param index_file: a file which include line of file path
-    :param root_dir: the folder need to check
-    :return: not exist file list
-    """
-    not_exists_file = list()
-    with open(index_file, 'r') as f:
-        for f_path in f:
-            f_path = os.path.join(root_dir, f_path.strip())
-            if os.path.exists(f_path):
-                continue
-            elif os.path.exists(f_path):
-                not_exists_file.append(f_path)
-    return not_exists_file
-
 
 def zinc_id_find(f_path):
     return re.findall('Name = (.*?)\n', gzip.open(f_path, mode='rb').read().decode())
