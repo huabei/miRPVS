@@ -19,94 +19,84 @@ from pytorch_lightning.loggers import WandbLogger, TensorBoardLogger
 class MInterface(pl.LightningModule):
     def __init__(self, model_name, loss, lr, **kargs):
         super().__init__()
+        # 保存超参数
         self.save_hyperparameters()
+        
+        # 加载模型
         self.load_model()
+        
+        # 加载损失函数
         self.configure_loss()
         # Project-Specific Definitions
 
+    @staticmethod
+    def add_specific_args(parser):
+        # LightningModule specific arguments
+        parser.add_argument('--model_name', type=str, default='GCN')
+        parser.add_argument('--loss', type=str, default='MSELoss')
+        parser.add_argument('--lr', type=float, default=0.001)
+        
+        return parser
+    
     def forward(self, batch):
         return self.model(batch)
 
-    def on_train_epoch_start(self) -> None:
-        self.train_predictions = defaultdict(list)
-
     def training_step(self, batch: Data, batch_idx):
-        # x, edge_index, edge_weight, t_energy = batch.x, batch.edge_index, batch.edge_attr, batch.y
         p_energy = self(batch)
         y = batch.y
-        self.train_predictions['prediction'].extend(p_energy.detach().cpu().numpy())
-        self.train_predictions['true'].extend(y.detach().cpu().numpy())
         loss = self.loss_function(torch.squeeze(p_energy), y)
-        self.log('train_loss', loss, on_step=True, on_epoch=True, prog_bar=True, batch_size=self.hparams.batch_size)
-        return loss
+        self.log('train_loss',prog_bar=True, batch_size=self.hparams.batch_size)
+        return {'loss': loss, 'preds': p_energy, 'true': y}
 
-    def on_train_epoch_end(self) -> None:
-        x_train = np.array(self.train_predictions['true'])
-        y_train = np.array(self.train_predictions['prediction'])
-        x_val = np.array(self.val_predictions['true'])
-        y_val = np.array(self.val_predictions['prediction'])
-        mae_train = np.mean(np.abs(x_train - y_train))
-        mae_val = np.mean(np.abs(x_val - y_val))
-        for logger in self.loggers:
-            logger.log_metrics({'mae_train': mae_train, 'mae_val': mae_val}, step=self.current_epoch)
+    def training_epoch_end(self, training_step_outputs) -> None:
+        '''计算训练集的mae'''
+        self.train_pred_y = torch.stack([x['preds'] for x in training_step_outputs]).detach().cpu().numpy()
+        self.train_true_y = torch.stack([x['true'] for x in training_step_outputs]).detach().cpu().numpy()
+        mae_train = np.mean(np.abs(self.train_pred_y - self.train_true_y)) # 平均绝对误差
+        self.log('train_mae', mae_train)
 
     def on_train_end(self) -> None:
-        x_train = np.array(self.train_predictions['true'])
-        y_train = np.array(self.train_predictions['prediction'])
-        x_val = np.array(self.val_predictions['true'])
-        y_val = np.array(self.val_predictions['prediction'])
-        train_r2 = r2_score(x_train, y_train)
-        val_r2 = r2_score(x_val, y_val)
-        train_fig = plot_fit_confidence_bond(x_train, y_train, train_r2, annot=False)
-        val_fig = plot_fit_confidence_bond(x_val, y_val, val_r2, annot=False)
-        self.train_r2 = train_r2
-        self.val_r2 = val_r2
-        for logger in self.loggers:
-            logger.log_metrics({'train_r2': train_r2, 'val_r2': val_r2})
-            if type(logger) is TensorBoardLogger:
-                logger.experiment.add_figure('train_fig', train_fig)
-                logger.experiment.add_figure('val_fig', val_fig)
-        wandb.log({'train_fig': train_fig, 'val_fig': val_fig})
-
-    def on_validation_epoch_start(self) -> None:
-        self.val_predictions = defaultdict(list)
+        self._share_val_step(self.train_pred_y, self.train_true_y, 'train')
+        self._share_val_step(self.val_pred_y, self.val_true_y, 'val')
 
     def validation_step(self, batch, batch_idx):
-        # x, edge_index, edge_weight, t_energy = batch.x, batch.edge_index, batch.edge_attr, batch.y
         p_energy = self(batch)
         y = batch.y
-        self.val_predictions['prediction'].extend(p_energy.cpu().numpy())
-        self.val_predictions['true'].extend(y.cpu().numpy())
         loss = self.loss_function(torch.squeeze(p_energy), y)
-        self.log('val_loss', loss, on_step=False, on_epoch=True, prog_bar=True, batch_size=self.hparams.batch_size)
-        return {'loss': loss, 'preds': p_energy}
+        self.log('val_loss', loss, prog_bar=True, batch_size=self.hparams.batch_size)
+        return {'loss': loss, 'preds': p_energy, 'true': y}
 
-    def on_test_start(self) -> None:
-        self.test_predictions = defaultdict(list)
-
+    def validation_epoch_end(self, validation_step_outputs) -> None:
+        '''计算验证集的mae'''
+        self.val_pred_y = torch.stack([x['preds'] for x in validation_step_outputs]).detach().cpu().numpy()
+        self.val_true_y = torch.stack([x['true'] for x in validation_step_outputs]).detach().cpu().numpy()
+        mae_val = np.mean(np.abs(self.val_pred_y - self.val_true_y))
+        self.log('val_mae', mae_val)
+        
     def test_step(self, batch, batch_idx):
         # Here we just reuse the validation_step for testing
         p_energy = self(batch)
         y = batch.y
-        self.test_predictions['prediction'].extend(p_energy.cpu().numpy())
-        self.test_predictions['true'].extend(y.cpu().numpy())
         # loss = self.loss_function(torch.squeeze(p_energy), batch.y)
-        return self.loss_function(torch.squeeze(p_energy), y)
+        return {'preds': p_energy, 'true': y}
 
-    def on_test_end(self):
+    def test_epoch_end(self, outputs):
         # Make the Progress Bar leave there
-        x = np.array(self.test_predictions['true'])
-        y = np.array(self.test_predictions['prediction'])
-        test_r2 = r2_score(x, y)
-        test_fig = plot_fit_confidence_bond(x, y, test_r2, annot=False)
-        for logger in self.loggers:
-            logger.log_metrics({'test_r2': test_r2})
-            if type(logger) is TensorBoardLogger:
-                logger.experiment.add_figure('test_fig', test_fig)
-                logger.log_hyperparams(self.hparams,
-                                       {'test_r2': test_r2, 'train_r2': self.train_r2, 'val_r2': self.val_r2})
-        wandb.log({'test_fig': test_fig})
+        self.test_pred_y = torch.stack([x['preds'] for x in outputs]).detach().cpu().numpy()
+        self.test_true_y = torch.stack([x['true'] for x in outputs]).detach().cpu().numpy()
+        mae_test = np.mean(np.abs(self.test_pred_y - self.test_true_y))
+        self.log('test_mae', mae_test)
+        self._share_val_step(self.test_pred_y, self.test_true_y, 'test')
 
+    def _share_val_step(self, pred, true, stage: str):
+        r2 = r2_score(true, pred)
+        fig = plot_fit_confidence_bond(true, pred, r2, annot=False)
+        tensorboard_logger = self.logger.experiment
+        self.log(f'{stage}_r2', r2, prog_bar=False)
+        tensorboard_logger.add_figure(f'{stage}_fig', fig, global_step=self.global_step)
+        if len(self.loggers) > 1:
+            self.loggers[1].experiment.log({f'{stage}_fig': fig, 'global_step': self.global_step})
+        
     def configure_optimizers(self):
         if hasattr(self.hparams, 'weight_decay'):
             weight_decay = self.hparams.weight_decay
