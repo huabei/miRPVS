@@ -12,6 +12,8 @@ import pytorch_lightning as pl
 from torch_geometric.data import Data
 from collections import defaultdict
 import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.use('Agg')
 
 
 class MInterface(pl.LightningModule):
@@ -89,7 +91,7 @@ class MInterface(pl.LightningModule):
     def _share_val_step(self, pred, true, stage: str):
         r2 = r2_score(true, pred)
         fig = plot_fit_confidence_bond(true, pred, r2, annot=False)
-        tensorboard_logger = self.logger.experiment
+        tensorboard_logger = self.loggers[0].experiment
         tensorboard_logger.add_figure(f'{stage}_fig', fig, global_step=self.global_step)
         tensorboard_logger.add_scalar(f'{stage}_r2', r2, global_step=self.global_step)
         if len(self.loggers) > 1:

@@ -33,9 +33,6 @@ class MolecularGCN(MessagePassing):
     def forward(self, x, x_ori, edge_index, edge_attr):
         # x has shape [N, input_dim]
         # edge_index has shape [2, E]
-        # Step 1: Add self-loops to the adjacency matrix.
-        # edge_index, _ = add_self_loops(edge_index, num_nodes=x.size(0))
-
         # Step 2: Linearly transform node feature matrix.
         h_x = torch.relu(self.w_atom(x))
         gammas = torch.sigmoid(self.gamma(x_ori))[edge_index[1]]

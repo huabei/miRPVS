@@ -11,7 +11,7 @@ def load_callbacks(args):
     ), plc.ModelCheckpoint(
         dirpath=f'checkpoints/{args.pl_module.model_name}/',
         monitor=args.early_stop.monitor,
-        filename=args.current_time + 'best-{epoch:02d}-{val_loss:.2f}',
+        filename=args.current_time + '-best-{epoch:02d}-{val_loss:.2f}',
         save_top_k=1,
         mode='min',
         save_last=False
@@ -36,6 +36,6 @@ def load_logger(args):
     if args.wandb:
         wandb_logger = WandbLogger(project=args.project,
                                    dir=args.log_dir, notes=args.comment)
-        return [wandb_logger, tb_logger]
+        return [tb_logger, wandb_logger]
     return [tb_logger]
 

@@ -17,8 +17,8 @@ def main(args: mlc.ConfigDict):
         logging.info('Using wandb')
         import wandb
         wandb.login(key='local-8fe6e6b5840c4c05aaaf6aac5ca8c1fb58abbd1f', host='http://localhost:8080')
-        wandb.init(project=args.project, save_code=False, dir=args.log_dir, reinit=True)
-        wandb.config.update(args)
+        wandb.init(project=args.project, save_code=True, dir=args.log_dir, reinit=True)
+        wandb.config.update(args.pl_module.model.to_dict())
     logging.info('Loading data and model')
     data_module = DInterface(**args.pl_data_module)
     model = MInterface(**args.pl_module)
@@ -29,6 +29,11 @@ def main(args: mlc.ConfigDict):
     
     logging.info('creating trainer')
     trainer = Trainer(**args.trainer)
+    
+    if args.trainer.auto_scale_batch_size:
+        logging.info('start auto scale batch size')
+        trainer.tune(model, data_module)
+
     logging.info('start training')
     trainer.fit(model, data_module)
     

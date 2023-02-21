@@ -1,7 +1,7 @@
 
 # This is a template config file for the project. It is used to generate the config file for each run.
-project: test
-comment: comment
+project: egnn
+comment: egnn first run
 tune: False
 seed: 1234
 # wandb: False
@@ -14,7 +14,7 @@ trainer:
   accelerator: gpu
   devices: 1
   fast_dev_run: False
-  max_epochs: 10
+  max_epochs: 500
   resume_from_checkpoint: ~
   auto_lr_find: False
   auto_scale_batch_size: False
@@ -23,23 +23,23 @@ trainer:
 pl_data_module:
   dataset: 'zinc_complex3a6p_data'
   data_dir: 'data/3a6p/zinc_drug_like_100k/3a6p_pocket5_202020'
-  batch_size: 1024
+  batch_size: 128
   num_workers: 8
 
 # 模型配置
 pl_module:
   weight_decay: 0
-  loss: 'mse'
-  model_name: 'molecular_gnn'
+  loss: 'l1'
+  model_name: 'egnn'
   lr: 5.e-4
   lr_scheduler: 'cosine'
-  lr_decay_steps: 1
-  lr_decay_rate: 0.8
+  lr_decay_steps: 5
+  lr_decay_rate: 0.9
   lr_decay_min_lr: 1.e-6
 
   model:
-    input_dim: 10
-    hidden_dim: 256
-    output_dim: 1
-    hidden_layers: 6
+    in_node_nf: 10
+    hidden_nf: 128
+    out_node_nf: 1
+    n_layers: 7
     out_layers: 6
