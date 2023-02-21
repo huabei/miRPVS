@@ -4,7 +4,7 @@ project: test
 comment: comment
 tune: False
 seed: 1234
-# wandb: False
+wandb: False
 early_stop:
   monitor: val_loss
   patience: 10
@@ -13,7 +13,7 @@ early_stop:
 trainer:
   accelerator: gpu
   devices: 1
-  fast_dev_run: False
+  fast_dev_run: True
   max_epochs: 100
   resume_from_checkpoint: ~
   auto_lr_find: False
@@ -23,7 +23,7 @@ pl_data_module:
   dataset: 'zinc_complex3a6p_data'
   data_dir: 'data/3a6p/zinc_drug_like_100k/3a6p_pocket5_202020'
   batch_size: 128
-  num_workers: 8
+  num_workers: 1
 
 pl_module:
   weight_decay: 0

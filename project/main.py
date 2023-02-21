@@ -28,10 +28,7 @@ def main(args: mlc.ConfigDict):
     args.trainer.logger = load_logger(args)
     
     logging.info('creating trainer')
-    # print(args.trainer.accelerator, type(args.trainer.devices))
     trainer = Trainer(**args.trainer)
-    print(trainer.accelerator, trainer.max_epochs)
-    raise Exception('debug')
     logging.info('start training')
     trainer.fit(model, data_module)
     
@@ -41,7 +38,7 @@ def main(args: mlc.ConfigDict):
 
 if __name__ == '__main__':
     from config.config import set_default_config
-    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
     cfg = mlc.ConfigDict()
     set_default_config(cfg)
     '''
@@ -65,6 +62,8 @@ if __name__ == '__main__':
 
     # 重置一些默认参数
     cfg.update(default_arg)
+    # 设置日志文件夹
+    cfg.log_dir = f'./log/{cfg.pl_module.model_name}/{cfg.pl_data_module.dataset}'
     if not os.path.exists(cfg.log_dir):
         os.makedirs(cfg.log_dir)
 

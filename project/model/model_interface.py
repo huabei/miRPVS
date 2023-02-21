@@ -12,7 +12,6 @@ import pytorch_lightning as pl
 from torch_geometric.data import Data
 from collections import defaultdict
 import matplotlib.pyplot as plt
-from pytorch_lightning.loggers import WandbLogger, TensorBoardLogger
 
 
 class MInterface(pl.LightningModule):
@@ -44,13 +43,13 @@ class MInterface(pl.LightningModule):
         p_energy = self(batch)
         y = batch.y
         loss = self.loss_function(torch.squeeze(p_energy), y)
-        self.log('train_loss',prog_bar=True, batch_size=self.hparams.batch_size)
+        self.log('train_loss', loss, prog_bar=True, batch_size=self.hparams.batch_size)
         return {'loss': loss, 'preds': p_energy, 'true': y}
 
     def training_epoch_end(self, training_step_outputs) -> None:
         '''计算训练集的mae'''
-        self.train_pred_y = torch.stack([x['preds'] for x in training_step_outputs]).detach().cpu().numpy()
-        self.train_true_y = torch.stack([x['true'] for x in training_step_outputs]).detach().cpu().numpy()
+        self.train_pred_y = torch.concat([x['preds'] for x in training_step_outputs]).detach().cpu().numpy()
+        self.train_true_y = torch.concat([x['true'] for x in training_step_outputs]).detach().cpu().numpy()
         mae_train = np.mean(np.abs(self.train_pred_y - self.train_true_y)) # 平均绝对误差
         self.log('train_mae', mae_train)
 
@@ -67,8 +66,8 @@ class MInterface(pl.LightningModule):
 
     def validation_epoch_end(self, validation_step_outputs) -> None:
         '''计算验证集的mae'''
-        self.val_pred_y = torch.stack([x['preds'] for x in validation_step_outputs]).detach().cpu().numpy()
-        self.val_true_y = torch.stack([x['true'] for x in validation_step_outputs]).detach().cpu().numpy()
+        self.val_pred_y = torch.concat([x['preds'] for x in validation_step_outputs]).detach().cpu().numpy()
+        self.val_true_y = torch.concat([x['true'] for x in validation_step_outputs]).detach().cpu().numpy()
         mae_val = np.mean(np.abs(self.val_pred_y - self.val_true_y))
         self.log('val_mae', mae_val)
         
@@ -81,8 +80,8 @@ class MInterface(pl.LightningModule):
 
     def test_epoch_end(self, outputs):
         # Make the Progress Bar leave there
-        self.test_pred_y = torch.stack([x['preds'] for x in outputs]).detach().cpu().numpy()
-        self.test_true_y = torch.stack([x['true'] for x in outputs]).detach().cpu().numpy()
+        self.test_pred_y = torch.concat([x['preds'] for x in outputs]).detach().cpu().numpy()
+        self.test_true_y = torch.concat([x['true'] for x in outputs]).detach().cpu().numpy()
         mae_test = np.mean(np.abs(self.test_pred_y - self.test_true_y))
         self.log('test_mae', mae_test)
         self._share_val_step(self.test_pred_y, self.test_true_y, 'test')
@@ -91,10 +90,11 @@ class MInterface(pl.LightningModule):
         r2 = r2_score(true, pred)
         fig = plot_fit_confidence_bond(true, pred, r2, annot=False)
         tensorboard_logger = self.logger.experiment
-        self.log(f'{stage}_r2', r2, prog_bar=False)
         tensorboard_logger.add_figure(f'{stage}_fig', fig, global_step=self.global_step)
+        tensorboard_logger.add_scalar(f'{stage}_r2', r2, global_step=self.global_step)
         if len(self.loggers) > 1:
-            self.loggers[1].experiment.log({f'{stage}_fig': fig, 'global_step': self.global_step})
+            wandb_logger = self.loggers[1].experiment
+            wandb_logger.log({f'{stage}_fig': fig, 'global_step': self.global_step})
         
     def configure_optimizers(self):
         if hasattr(self.hparams, 'weight_decay'):
