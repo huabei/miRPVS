@@ -29,7 +29,7 @@ pl_data_module:
 # 模型配置
 pl_module:
   weight_decay: 0
-  loss: 'l1'
+  loss: 'mse'
   model_name: 'egnn'
   lr: 5.e-4
   lr_scheduler: 'cosine'
