@@ -96,7 +96,7 @@ class MInterface(pl.LightningModule):
         tensorboard_logger.add_scalar(f'{stage}_r2', r2, global_step=self.global_step)
         if len(self.loggers) > 1:
             wandb_logger = self.loggers[1].experiment
-            wandb_logger.log({f'{stage}_fig': fig, 'global_step': self.global_step})
+            wandb_logger.log({f'{stage}_fig': fig, f'{stage}_r2': r2, 'global_step': self.global_step})
         
     def configure_optimizers(self):
         if hasattr(self.hparams, 'weight_decay'):

@@ -44,7 +44,7 @@ def set_default_config(config: ConfigDict):
         
     def pl_module_cfg():
         '''pl.LightningModule的参数,手动调用时的参数'''
-        config.pl_module = ConfigDict()
+        config.pl_module = ConfigDict(type_safe=False)
         config.pl_module.batch_size = batch_size
         config.pl_module.weight_decay = 0
         config.pl_module.loss = 'mse'
@@ -56,17 +56,11 @@ def set_default_config(config: ConfigDict):
         config.pl_module.lr_decay_min_lr = 1e-6
         
         # model cfg
-        if config.pl_module.model_name == 'molecular_gnn':
-            config.pl_module.model = ConfigDict()
-            config.pl_module.model.input_dim = 96
-            config.pl_module.model.hidden_dim = 128
-            config.pl_module.model.output_dim = 1
-            config.pl_module.model.hidden_layers = 3
-            config.pl_module.model.out_layers = 1
+        config.pl_module.model = ConfigDict(type_safe=False)
     
     def pl_data_module_cfg():
         '''pl.LightningDataModule的参数,手动调用时的参数'''
-        config.pl_data_module = ConfigDict()
+        config.pl_data_module = ConfigDict(type_safe=False)
         config.pl_data_module.dataset = 'zinc_complex3a6p_data'
         config.pl_data_module.data_dir = 'data/3a6p/zinc_drug_like_100k/3a6p_pocket5_202020'
         config.pl_data_module.batch_size = batch_size

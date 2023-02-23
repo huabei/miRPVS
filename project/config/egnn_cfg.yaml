@@ -1,7 +1,7 @@
 
 # This is a template config file for the project. It is used to generate the config file for each run.
 project: egnn
-comment: egnn first run
+comment: egnn save config test
 tune: False
 seed: 1234
 # wandb: False
@@ -28,8 +28,8 @@ pl_data_module:
 
 # 模型配置
 pl_module:
-  weight_decay: 0
-  loss: 'mse'
+  weight_decay: 1.e-4
+  loss: 'smooth_l1'
   model_name: 'egnn'
   lr: 5.e-4
   lr_scheduler: 'cosine'
@@ -41,5 +41,5 @@ pl_module:
     in_node_nf: 10
     hidden_nf: 128
     out_node_nf: 1
-    n_layers: 7
+    n_layers: 4
     out_layers: 6

@@ -8,13 +8,6 @@ def load_callbacks(args):
         monitor=args.early_stop.monitor,
         mode='min',
         patience=args.early_stop.patience,
-    ), plc.ModelCheckpoint(
-        dirpath=f'checkpoints/{args.pl_module.model_name}/',
-        monitor=args.early_stop.monitor,
-        filename=args.current_time + '-best-{epoch:02d}-{val_loss:.2f}',
-        save_top_k=1,
-        mode='min',
-        save_last=False
     )]
     # 学习率调整
     if args.pl_module.lr_scheduler:
@@ -26,6 +19,15 @@ def load_callbacks(args):
         callbacks.append(TuneReportCallback(
             metrics={'loss': 'val_loss'},
             on='validation_end'))
+    else: # tune 时不保存模型
+        callbacks.append(plc.ModelCheckpoint(
+                                            dirpath=f'checkpoints/{args.pl_module.model_name}/',
+                                            monitor=args.early_stop.monitor,
+                                            filename=args.current_time + '-best-{epoch:02d}-{val_loss:.2f}',
+                                            save_top_k=1,
+                                            mode='min',
+                                            save_last=False
+                                            ))
     return callbacks
 
 

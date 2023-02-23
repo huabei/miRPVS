@@ -20,6 +20,7 @@ def main(args: mlc.ConfigDict):
         wandb.init(project=args.project, save_code=True, dir=args.log_dir, reinit=True)
         wandb.config.update(args.pl_module.model.to_dict())
         wandb.config.update(args.to_dict())
+        wandb.save(args.config_file)
     logging.info('Loading data and model')
     data_module = DInterface(**args.pl_data_module)
     model = MInterface(**args.pl_module)
