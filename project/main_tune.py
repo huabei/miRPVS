@@ -49,7 +49,7 @@ def main_tune(trainable, cfg_path: str):
     # wandb程序会记录这次运行的配置文件
     fixed_cfg.config_file = to_absolute_path(cfg_path)
     # 设置日志文件夹
-    fixed_cfg.log_dir = f'./log/tune/{fixed_cfg.pl_module.model_name}/{fixed_cfg.pl_data_module.dataset}'
+    fixed_cfg.log_dir = f'./log/tune/{fixed_cfg.pl_module.model_name}/{fixed_cfg.pl_data_module.dataset}/{fixed_cfg.current_time}'
     if not os.path.exists(fixed_cfg.log_dir):
         os.makedirs(fixed_cfg.log_dir)
     # 将路径转换为绝对路径，相对路径可能会导致子进程无法找到文件
@@ -60,7 +60,7 @@ def main_tune(trainable, cfg_path: str):
     # 超参数搜索算法
     scheduler = ASHAScheduler(
         max_t=num_epochs,  # max epoch
-        grace_period=1,  # 延缓周期r, 规定起始epoch数目为{r * η^s}个，用于避免过早停止
+        grace_period=fixed_cfg.grace_period,  # 延缓周期r, 规定起始epoch数目为{r * η^s}个，用于避免过早停止
         reduction_factor=2,  # 降低因子η，每个周期保留{n/η}个trial
         brackets=1)
     # 命令行输出内容

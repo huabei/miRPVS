@@ -8,7 +8,7 @@ scientific_hyperparameter:
     values: [64, 128, 256]
   pl_module.model.n_layers:
     type: grid_search
-    values: [2, 3, 4]
+    values: [2, 4, 6, 8]
   # pl_module.model.out_layers:
   #   type: grid_search
   #   values: [4, 6, 8]
@@ -36,11 +36,11 @@ nuissance_hyperparameter:
   
 fixed_hyperparameter:
   # project
-  num_samples: 4
+  num_samples: 20
   grace_period: 10
   gpus_per_trial: 0.5
   project: egnn_tune
-  comment: egnn tune test
+  comment: egnn tune choose model
   tune: True
   seed: 1234
   # wandb: False
@@ -53,7 +53,7 @@ fixed_hyperparameter:
     accelerator: gpu
     devices: 1
     fast_dev_run: False
-    max_epochs: 10
+    max_epochs: 200
     resume_from_checkpoint: ~
     auto_lr_find: False
     auto_scale_batch_size: False
@@ -65,7 +65,7 @@ fixed_hyperparameter:
   pl_data_module:
     dataset: 'zinc_complex3a6p_data'
     data_dir: 'data/3a6p/zinc_drug_like_100k/3a6p_pocket5_202020'
-    batch_size: 32
+    batch_size: 128
     num_workers: 4
 
   # model
