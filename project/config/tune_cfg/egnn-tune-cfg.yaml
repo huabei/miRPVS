@@ -1,20 +1,26 @@
 # ray tune config
 # scientific hyperparameter tuning
 
-scientific_hyperparameter:
+scientific_hyperparameter: ~
   # model
-  pl_module.model.hidden_nf:
-    type: grid_search
-    values: [64, 128, 256]
-  pl_module.model.n_layers:
-    type: grid_search
-    values: [2, 4, 6, 8]
+  # pl_module.model.hidden_nf:
+  #   type: grid_search
+  #   values: [64, 128, 256]
+  # pl_module.model.n_layers:
+  #   type: grid_search
+  #   values: [2, 4, 6, 8]
   # pl_module.model.out_layers:
   #   type: grid_search
   #   values: [4, 6, 8]
 
 nuissance_hyperparameter:
   # training
+  pl_module.model.hidden_nf:
+    type: choice
+    values: [64, 128, 256]
+  pl_module.model.n_layers:
+    type: choice
+    values: [2, 4, 6, 8]
   pl_module.lr:
     type: loguniform
     lower: 1.e-5
@@ -31,16 +37,17 @@ nuissance_hyperparameter:
     upper: 1.e-4
   pl_module.weight_decay:
     type: loguniform
-    lower: 1.e-6
-    upper: 1.e-3
+    lower: 1.e-7
+    upper: 1.e-4
   
 fixed_hyperparameter:
   # project
-  num_samples: 20
+  num_samples: 32
   grace_period: 10
   gpus_per_trial: 0.5
   project: egnn_tune
   comment: egnn tune choose model
+  group: 验证自带attention效果
   tune: True
   seed: 1234
   # wandb: False
@@ -53,7 +60,7 @@ fixed_hyperparameter:
     accelerator: gpu
     devices: 1
     fast_dev_run: False
-    max_epochs: 200
+    max_epochs: 160
     resume_from_checkpoint: ~
     auto_lr_find: False
     auto_scale_batch_size: False
@@ -66,7 +73,7 @@ fixed_hyperparameter:
     dataset: 'zinc_complex3a6p_data'
     data_dir: 'data/3a6p/zinc_drug_like_100k/3a6p_pocket5_202020'
     batch_size: 128
-    num_workers: 4
+    num_workers: 8
 
   # model
   pl_module:
@@ -77,3 +84,4 @@ fixed_hyperparameter:
     model:
       in_node_nf: 10
       out_node_nf: 1
+      attention: True

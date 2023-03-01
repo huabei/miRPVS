@@ -41,6 +41,7 @@ fixed_hyperparameter:
   gpus_per_trial: 0.5
   project: egnn_tune
   comment: egnn tune test
+  group: 验证attention
   tune: True
   seed: 1234
   # wandb: False
