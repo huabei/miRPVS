@@ -1,3 +1,5 @@
+# 此文件从egnn源文件修改而来，加深了attention的mlp层。
+
 from torch import nn
 import torch
 from torch_scatter import scatter_mean
@@ -45,18 +47,20 @@ class E_GCL(nn.Module):
 
         if self.attention:
             self.att_mlp = nn.Sequential(
+                nn.Linear(input_edge + edge_coords_nf + edges_in_d, hidden_nf),
+                act_fn,
                 nn.Linear(hidden_nf, 1),
                 nn.Sigmoid())
 
     def edge_model(self, source, target, radial, edge_attr):
         # 产生edge的特征
         if edge_attr is None:  # Unused.
-            out = torch.cat([source, target, radial], dim=1)
+            out_ = torch.cat([source, target, radial], dim=1)
         else:
-            out = torch.cat([source, target, radial, edge_attr], dim=1)
-        out = self.edge_mlp(out)
+            out_ = torch.cat([source, target, radial, edge_attr], dim=1)
+        out = self.edge_mlp(out_)
         if self.attention:
-            att_val = self.att_mlp(out)
+            att_val = self.att_mlp(out_)
             out = out * att_val
         return out
 
@@ -106,7 +110,7 @@ class E_GCL(nn.Module):
         return h, coord, edge_attr # 新的node特征和坐标
 
 
-class Egnn(nn.Module):
+class EgnnDeepAttention(nn.Module):
     def __init__(self, in_node_nf, hidden_nf, out_node_nf, in_edge_nf=0, device='cpu', act_fn=nn.SiLU(), n_layers=4, residual=True, attention=False, normalize=False, tanh=False, **kwargs):
         '''
 

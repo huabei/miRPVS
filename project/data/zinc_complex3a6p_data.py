@@ -51,7 +51,7 @@ class ZincComplex3a6pData(InMemoryDataset):
             # get every row
             data = data.strip().split('\n')
             # get data id
-            id = data[0]
+            id = int(data[0][4:])
             # get property in last row
             property = torch.tensor(float(data[-1].strip()), dtype=torch.float32)
             # get atoms and its coordinate
@@ -77,7 +77,7 @@ class ZincComplex3a6pData(InMemoryDataset):
             edge_attr = torch.tensor(distance_matrix.reshape(-1, 1), dtype=torch.float32)
             d = Data(x=torch.tensor(atoms, dtype=torch.long), edge_index=edge_index, edge_attr=edge_attr,
                      y=property,
-                     pos=torch.tensor(atom_coords), id=id)
+                     pos=torch.tensor(atom_coords), id=torch.tensor(id, dtype=torch.long))
             # return d
             total_ligands_graph.append(d)
 
