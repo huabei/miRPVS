@@ -115,12 +115,23 @@ class MInterface(pl.LightningModule):
                                        gamma=self.hparams.lr_decay_rate)
             elif self.hparams.lr_scheduler == 'cosine':
                 scheduler = lrs.CosineAnnealingLR(optimizer,
-                                                  T_max=self.hparams.lr_decay_steps,
+                                                  T_max=self.hparams.lr_t_max, # 多少个epoch衰减四分之一周期
                                                   eta_min=self.hparams.lr_decay_min_lr)
+            elif self.hparams.lr_scheduler == 'cosine_warmup':
+                scheduler = lrs.CosineAnnealingWarmRestarts(optimizer, T_0=self.hparams.lr_t_0,
+                                                            T_mult=self.hparams.lr_t_max,
+                                                            eta_min=self.hparams.lr_decay_min_lr)
             else:
                 raise ValueError('Invalid lr_scheduler type!')
             return [optimizer], [scheduler]
-
+    
+    # def lr_scheduler_step(self, scheduler, optimizer_idx: int, metric) -> None:
+    #     # 先使用cosine annealing，再使用step decay
+    #     if self.hparams.lr_scheduler == 'cosine_warmup':
+    #         scheduler.step(epoch=self.current_epoch)
+    #     else:
+    #         scheduler.step()
+        
     def configure_loss(self):
         loss = self.hparams.loss.lower()
         if loss == 'mse':

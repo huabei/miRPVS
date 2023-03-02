@@ -1,20 +1,20 @@
 
 # This is a template config file for the project. It is used to generate the config file for each run.
 project: egnn
-comment: 增加attention mlp的深度
+comment: 测试新学习率
 tune: False
 seed: 1234
 # wandb: False
 early_stop:
   monitor: val_loss
-  patience: 10
+  patience: 100
 
 # 训练配置
 trainer:
   accelerator: gpu
   devices: 1
   fast_dev_run: False
-  max_epochs: 150
+  max_epochs: 74
   resume_from_checkpoint: ~
   auto_lr_find: False
   auto_scale_batch_size: False
@@ -30,11 +30,19 @@ pl_data_module:
 pl_module:
   weight_decay: 1.e-5
   loss: 'smooth_l1'
-  model_name: 'egnn_deep_attention'
+  model_name: 'egnn_independent_attention'
+
+  # optimizer
   lr: 5.e-4
-  lr_scheduler: 'cosine'
-  lr_decay_steps: 5
-  lr_decay_rate: 0.95
+  lr_scheduler: 'cosine_warmup'
+  # cosine_warmup
+  lr_t_0: 5
+  lr_t_mult: 2
+  # cosine
+  lr_t_max: 2
+  # step
+  lr_decay_steps: 1
+  lr_decay_rate: 0.9
   lr_decay_min_lr: 1.e-6
 
   model:
@@ -42,6 +50,6 @@ pl_module:
     hidden_nf: 128
     out_node_nf: 1
     n_layers: 4
-    attention: True
+    attention: False
     normalize: False
     tanh: False
