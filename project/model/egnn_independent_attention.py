@@ -10,7 +10,7 @@ class E_GCL(nn.Module):
     re
     """
 
-    def __init__(self, input_nf, output_nf, hidden_nf, edges_in_d=0, act_fn=nn.SiLU(), residual=True, attention=False, normalize=False, coords_agg='mean', tanh=False):
+    def __init__(self, input_nf, output_nf, hidden_nf, edges_in_d=0, act_fn=nn.SiLU(), residual=True, attention=True, normalize=False, coords_agg='mean', tanh=False):
         super(E_GCL, self).__init__()
         input_edge = input_nf * 2 # source + target dim
         self.residual = residual
@@ -110,7 +110,7 @@ class E_GCL(nn.Module):
         return h, coord, edge_attr # 新的node特征和坐标
 
 
-class EgnnDeepAttention(nn.Module):
+class EgnnIndependentAttention(nn.Module):
     def __init__(self, in_node_nf, hidden_nf, out_node_nf, in_edge_nf=0, device='cpu', act_fn=nn.SiLU(), n_layers=4, residual=True, attention=False, normalize=False, tanh=False, **kwargs):
         '''
 

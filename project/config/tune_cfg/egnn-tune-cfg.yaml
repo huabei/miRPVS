@@ -17,10 +17,10 @@ nuissance_hyperparameter:
   # training
   pl_module.model.hidden_nf:
     type: choice
-    values: [64, 128, 256]
+    categories: [64, 128]
   pl_module.model.n_layers:
     type: choice
-    values: [2, 4, 6, 8]
+    categories: [2, 4, 6, 8]
   pl_module.lr:
     type: loguniform
     lower: 1.e-5
@@ -42,12 +42,12 @@ nuissance_hyperparameter:
   
 fixed_hyperparameter:
   # project
-  num_samples: 32
+  num_samples: 64
   grace_period: 10
   gpus_per_trial: 0.5
   project: egnn_tune
   comment: egnn tune choose model
-  group: 验证自带attention效果
+  group: 验证independent attention的性能
   tune: True
   seed: 1234
   # wandb: False
@@ -60,7 +60,7 @@ fixed_hyperparameter:
     accelerator: gpu
     devices: 1
     fast_dev_run: False
-    max_epochs: 160
+    max_epochs: 80
     resume_from_checkpoint: ~
     auto_lr_find: False
     auto_scale_batch_size: False
@@ -78,7 +78,7 @@ fixed_hyperparameter:
   # model
   pl_module:
     loss: 'smooth_l1'
-    model_name: 'egnn'
+    model_name: 'egnn_independent_attention'
     lr_scheduler: 'cosine'
 
     model:
