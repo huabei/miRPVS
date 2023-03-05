@@ -13,7 +13,7 @@ scientific_hyperparameter: ~
   #   type: grid_search
   #   values: [4, 6, 8]
 
-nuissance_hyperparameter:
+nuisance_hyperparameter:
   # training
   pl_module.model.hidden_nf:
     type: choice
@@ -50,7 +50,7 @@ fixed_hyperparameter:
   group: 验证independent attention的性能
   tune: True
   seed: 1234
-  # wandb: False
+  wandb: True
   early_stop:
     monitor: val_loss
     patience: 10

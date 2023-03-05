@@ -119,7 +119,7 @@ class MInterface(pl.LightningModule):
                                                   eta_min=self.hparams.lr_decay_min_lr)
             elif self.hparams.lr_scheduler == 'cosine_warmup':
                 scheduler = lrs.CosineAnnealingWarmRestarts(optimizer, T_0=self.hparams.lr_t_0,
-                                                            T_mult=self.hparams.lr_t_max,
+                                                            T_mult=self.hparams.lr_t_mult,
                                                             eta_min=self.hparams.lr_decay_min_lr)
             else:
                 raise ValueError('Invalid lr_scheduler type!')

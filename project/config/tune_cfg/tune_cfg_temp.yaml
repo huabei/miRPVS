@@ -13,7 +13,7 @@ scientific_hyperparameter:
   #   type: grid_search
   #   values: [4, 6, 8]
 
-nuissance_hyperparameter:
+nuisance_hyperparameter:
   # training
   pl_module.lr:
     type: loguniform

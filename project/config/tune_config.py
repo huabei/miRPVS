@@ -31,9 +31,9 @@ def config_tune(yaml_path: str) -> tuple:
         hyperparameter = set_tune_hyperparameter(scientific_hyperparameter)
         tune_config.update(hyperparameter)
     # 设置冗余超参数
-    nuissance_hyperparameter = config_d['nuissance_hyperparameter']
-    if nuissance_hyperparameter is not None:
-        hyperparameter = set_tune_hyperparameter(nuissance_hyperparameter)
+    nuisance_hyperparameter = config_d['nuisance_hyperparameter']
+    if nuisance_hyperparameter is not None:
+        hyperparameter = set_tune_hyperparameter(nuisance_hyperparameter)
         tune_config.update(hyperparameter)
     
     # 设置固定超参数
