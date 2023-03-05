@@ -17,7 +17,7 @@ def main(args: mlc.ConfigDict):
         logging.info('Using wandb')
         import wandb
         wandb.login(key='local-8fe6e6b5840c4c05aaaf6aac5ca8c1fb58abbd1f', host='http://localhost:8080')
-        wandb.init(project=args.project, save_code=True, dir=args.log_dir, reinit=True)
+        wandb.init(project=args.project, group=args.group, save_code=True, dir=args.log_dir, reinit=True)
         wandb.config.update(args.pl_module.model.to_dict())
         wandb.config.update(args.to_dict())
         wandb.save(args.config_file)
