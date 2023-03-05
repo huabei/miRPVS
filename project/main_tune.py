@@ -32,7 +32,25 @@ def trainable_decorator(func):
         main(fixed_config)
     return wrapper
         
-        
+
+def load_scheduler(cfg: ConfigDict):
+    '''加载超参数搜索算法'''
+    if cfg.scheduler == 'ASHA':
+        logging.info('Using ASHA scheduler')
+        scheduler = ASHAScheduler(
+            max_t=cfg.trainer.max_epochs,  # max epoch
+            grace_period=cfg.grace_period,  # 延缓周期r, 规定起始epoch数目为{r * η^s}个，用于避免过早停止
+            reduction_factor=cfg.reduction_factor,  # 降低因子η，每个周期保留{n/η}个trial
+            brackets=1,  # 用于搜索的bracket数目s
+        )
+    elif cfg.scheduler is None:
+        logging.info('Using default scheduler')
+        scheduler = None
+    else:
+        raise ValueError(f'Unknown scheduler {cfg.scheduler}')
+    return scheduler
+    
+
 def main_tune(trainable, cfg_path: str):
     '''主函数，用于进行超参数搜索
     Args:
@@ -55,14 +73,8 @@ def main_tune(trainable, cfg_path: str):
     # 将路径转换为绝对路径，相对路径可能会导致子进程无法找到文件
     fixed_cfg.log_dir = to_absolute_path(fixed_cfg.log_dir) # 日志文件夹
     fixed_cfg.pl_data_module.data_dir = to_absolute_path(fixed_cfg.pl_data_module.data_dir) # 数据文件夹
-    # 最大资源
-    num_epochs = fixed_cfg.trainer.max_epochs
     # 超参数搜索算法
-    scheduler = ASHAScheduler(
-        max_t=num_epochs,  # max epoch
-        grace_period=fixed_cfg.grace_period,  # 延缓周期r, 规定起始epoch数目为{r * η^s}个，用于避免过早停止
-        reduction_factor=2,  # 降低因子η，每个周期保留{n/η}个trial
-        brackets=1)
+    scheduler = load_scheduler(fixed_cfg)
     # 命令行输出内容
     reporter = CLIReporter(
         parameter_columns=None, # 默认显示所有参数
