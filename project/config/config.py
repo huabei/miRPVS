@@ -47,13 +47,13 @@ def set_default_config(config: ConfigDict):
         config.pl_module = ConfigDict(type_safe=False)
         config.pl_module.batch_size = batch_size
         config.pl_module.weight_decay = 0
-        config.pl_module.loss = 'mse'
-        config.pl_module.model_name = 'gcn'
-        config.pl_module.lr_scheduler = 'step'
+        config.pl_module.loss = 'smooth_l1'
+        config.pl_module.model_name = 'egnn'
+        config.pl_module.lr_scheduler = 'cosine'
         config.pl_module.lr = 5e-4
         config.pl_module.lr_decay_steps = 100
         config.pl_module.lr_decay_rate = 0.8
-        config.pl_module.lr_decay_min_lr = 1e-6
+        config.pl_module.lr_decay_min_lr = 0
         
         # model cfg
         config.pl_module.model = ConfigDict(type_safe=False)
