@@ -19,7 +19,7 @@ def load_callbacks(args):
         callbacks.append(TuneReportCallback(
             metrics={'loss': 'val_loss'},
             on='validation_end'))
-    else: # tune 时不保存模型
+    if args.trainer.enable_checkpointing:
         callbacks.append(plc.ModelCheckpoint(
                                             dirpath=f'checkpoints/{args.pl_module.model_name}/',
                                             monitor=args.early_stop.monitor,
