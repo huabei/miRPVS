@@ -1,8 +1,8 @@
 
 # This is a template config file for the project. It is used to generate the config file for each run.
 project: egnn-sweep
-comment: 使用新学习率策略测试attention
-group: ~
+comment: 使用归一化
+group: egnn_normalize
 tune: False
 seed: 1234
 wandb: True
@@ -15,10 +15,13 @@ trainer:
   accelerator: gpu
   devices: 1
   fast_dev_run: False
-  max_epochs: 61
+  max_epochs: 63
   resume_from_checkpoint: ~
   auto_lr_find: False
   auto_scale_batch_size: False
+  enable_progress_bar: False
+  enable_model_summary: False
+  enable_checkpointing: False
 
 # 数据模块配置
 pl_data_module:
@@ -29,28 +32,28 @@ pl_data_module:
 
 # 模型配置
 pl_module:
-  weight_decay: 1.e-6
+  weight_decay: 0
   loss: 'smooth_l1'
   model_name: 'egnn'
 
   # optimizer
   lr: 5.e-4
-  lr_decay_min_lr: 1.e-6
+  lr_decay_min_lr: 0
   lr_scheduler: 'cosine_warmup'
   # cosine_warmup
-  lr_t_0: 2
+  lr_t_0: 1
   lr_t_mult: 2
   # cosine
-  lr_t_max: 2
+  lr_t_max: 20
   # step
   lr_decay_steps: 1
   lr_decay_rate: 0.9
 
   model:
     in_node_nf: 10
-    hidden_nf: 128
+    hidden_nf: 64
     out_node_nf: 1
-    n_layers: 4
+    n_layers: 3
     attention: True
-    normalize: False
-    tanh: True
+    normalize: True
+    tanh: False

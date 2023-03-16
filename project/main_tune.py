@@ -67,7 +67,7 @@ def main_tune(trainable, cfg_path: str):
     # wandb程序会记录这次运行的配置文件
     fixed_cfg.config_file = to_absolute_path(cfg_path)
     # 设置日志文件夹
-    fixed_cfg.log_dir = f'./log/tune/{fixed_cfg.pl_module.model_name}/{fixed_cfg.pl_data_module.dataset}/{fixed_cfg.current_time}'
+    fixed_cfg.log_dir = f'./log/tune/{fixed_cfg.pl_module.model_name}/{fixed_cfg.pl_data_module.dataset}/{fixed_cfg.current_time+"_".join(fixed_cfg.comment.split())}'
     if not os.path.exists(fixed_cfg.log_dir):
         os.makedirs(fixed_cfg.log_dir)
     # 将路径转换为绝对路径，相对路径可能会导致子进程无法找到文件

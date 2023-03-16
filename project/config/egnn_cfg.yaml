@@ -1,7 +1,7 @@
 
 # This is a template config file for the project. It is used to generate the config file for each run.
 project: egnn
-comment: 测试cosine lr scheduler
+comment: 测试3_64模型lr_t_max
 group: ~
 tune: False
 seed: 1234
@@ -15,7 +15,7 @@ trainer:
   accelerator: gpu
   devices: 1
   fast_dev_run: False
-  max_epochs: 80
+  max_epochs: 110
   resume_from_checkpoint: ~
   auto_lr_find: False
   auto_scale_batch_size: False
@@ -29,19 +29,19 @@ pl_data_module:
 
 # 模型配置
 pl_module:
-  weight_decay: 1.e-5
+  weight_decay: 0
   loss: 'smooth_l1'
   model_name: 'egnn'
 
   # optimizer
   lr: 5.e-4
-  lr_decay_min_lr: 1.e-6
+  lr_decay_min_lr: 0
   lr_scheduler: 'cosine'
   # cosine_warmup
   lr_t_0: 2
   lr_t_mult: 2
   # cosine
-  lr_t_max: 80
+  lr_t_max: 10
   # step
   lr_decay_steps: 1
   lr_decay_rate: 0.9
@@ -50,7 +50,7 @@ pl_module:
     in_node_nf: 10
     hidden_nf: 64
     out_node_nf: 1
-    n_layers: 4
+    n_layers: 3
     attention: False
     normalize: False
     tanh: False
