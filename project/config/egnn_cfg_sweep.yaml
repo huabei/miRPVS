@@ -55,5 +55,5 @@ pl_module:
     out_node_nf: 1
     n_layers: 3
     attention: True
-    normalize: True
+    normalize: False
     tanh: False

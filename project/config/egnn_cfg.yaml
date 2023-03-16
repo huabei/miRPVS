@@ -19,6 +19,9 @@ trainer:
   resume_from_checkpoint: ~
   auto_lr_find: False
   auto_scale_batch_size: False
+  enable_progress_bar: False
+  enable_model_summary: False
+  enable_checkpointing: False
 
 # 数据模块配置
 pl_data_module:

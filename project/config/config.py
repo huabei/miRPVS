@@ -6,6 +6,7 @@ CURRENT_TIME = strftime("%Y-%m-%d-%H-%M-%S", localtime())
 
 def set_default_config(config: ConfigDict):
     '''
+    在程序当中用到的配置参数，如果不存在将会报错。各个模型自己的参数可以后续再加入。
     return:
             config: ConfigDict
                 tune: bool
@@ -16,6 +17,7 @@ def set_default_config(config: ConfigDict):
     '''
     config.project = 'project'
     config.comment = 'comment'
+    config.group = None
     config.tune = False
     config.seed = 1234
     config.current_time = CURRENT_TIME
@@ -39,6 +41,9 @@ def set_default_config(config: ConfigDict):
         config.trainer.deterministic = False
         config.trainer.auto_lr_find = False
         config.trainer.auto_scale_batch_size = False
+        config.trainer.enable_progress_bar = True
+        config.trainer.enable_model_summary = True
+        config.trainer.enable_checkpointing = True
         config.trainer.accelerator = 'gpu'
         config.trainer.devices = 1
         
@@ -51,6 +56,7 @@ def set_default_config(config: ConfigDict):
         config.pl_module.model_name = 'egnn'
         config.pl_module.lr_scheduler = 'cosine'
         config.pl_module.lr = 5e-4
+        config.pl_module.lr_t_max = 100
         config.pl_module.lr_decay_steps = 100
         config.pl_module.lr_decay_rate = 0.8
         config.pl_module.lr_decay_min_lr = 0
