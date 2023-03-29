@@ -90,13 +90,14 @@ class MInterface(pl.LightningModule):
 
     def _share_val_step(self, pred, true, stage: str):
         r2 = r2_score(true, pred)
+        pearson = np.corrcoef(true, pred)[0, 1]
         fig = plot_fit_confidence_bond(true, pred, r2, annot=False)
         tensorboard_logger = self.loggers[0].experiment
         tensorboard_logger.add_figure(f'{stage}_fig', fig, global_step=self.global_step)
         tensorboard_logger.add_scalar(f'{stage}_r2', r2, global_step=self.global_step)
         if len(self.loggers) > 1:
             wandb_logger = self.loggers[1].experiment
-            wandb_logger.log({f'{stage}_fig': fig, f'{stage}_r2': r2, 'global_step': self.global_step})
+            wandb_logger.log({f'{stage}_fig': fig, f'{stage}_r2': r2, f'{stage}_pearson': pearson, 'global_step': self.global_step})
         
     def configure_optimizers(self):
         if hasattr(self.hparams, 'weight_decay'):
