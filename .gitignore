@@ -131,3 +131,6 @@ project/wandb
 project/log
 *.ckpt
 *.pdb
+*.h5
+project/utils/dataset/hpc_order_help.sh
+project/utils/dataset/sbatch_vina_gpu.sh
