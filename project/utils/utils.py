@@ -57,12 +57,15 @@ class ZincPdbqt():
     """
 
     def __init__(self, pdbqt_file, filter_=None, transform=None):
+        # 读取.pdbqt.gz文件，转换为str
         self.f_str = gzip.open(pdbqt_file, mode='rb').read().decode()
-        # print(self.f_str[:1000])
+        # 读取.pdbqt.gz文件中的zinc_id
         self.zinc_id = re.findall('Name = (.*?)\n', self.f_str)
-        # print(len(self.zinc_id))
+        # 读取.pdbqt.gz文件中的分子结构
         self.molecules = re.findall('MODEL.*?\n(.*?)ENDMDL\n', self.f_str, re.S)
+        # 生成一个list，包含zinc_id和分子结构
         self.data = list(zip(self.zinc_id, self.molecules))
+        # 过滤和转换
         if filter_ is not None:
             assert type(filter_) in (list, tuple), 'filter type must be list or tuple'
             for fil in filter_:
@@ -71,7 +74,6 @@ class ZincPdbqt():
             assert type(transform) in (list, tuple), 'transform type must be list or tuple'
             for trans in transform:
                 self.data = list(map(trans, self.data))
-            # self.data = list(zip(self.zinc_id, self.molecules))
 
     def __iter__(self):
         return iter(self.data)
