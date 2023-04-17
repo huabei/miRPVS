@@ -132,5 +132,7 @@ project/log
 *.ckpt
 *.pdb
 *.h5
+*.pkl
+*.pth
 project/utils/dataset/hpc_order_help.sh
 project/utils/dataset/sbatch_vina_gpu.sh

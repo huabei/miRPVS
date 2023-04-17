@@ -11,7 +11,7 @@ import pandas as pd
 import numpy as np
 import copy
 import functools
-from rdkit.Chem import Descriptors
+
 
 def zinc_id_find(f_path):
     return re.findall('Name = (.*?)\n', gzip.open(f_path, mode='rb').read().decode())
@@ -62,7 +62,13 @@ class ZincPdbqt():
         # 读取.pdbqt.gz文件中的zinc_id
         self.zinc_id = re.findall('Name = (.*?)\n', self.f_str)
         # 读取.pdbqt.gz文件中的分子结构
-        self.molecules = re.findall('MODEL.*?\n(.*?)ENDMDL\n', self.f_str, re.S)
+        
+        # 如果文件中有多个分子结构，那么就会有多个MODEL，这里使用正则表达式来匹配所有的MODEL
+        # 如果文件中只有一个分子结构，那么就会没有MODEL，直接匹配整个文件
+        if self.f_str.startswith('MODEL'):
+            self.molecules = re.findall('MODEL.*?\n(.*?)ENDMDL\n', self.f_str, re.S)
+        else:
+            self.molecules = [self.f_str]
         # 生成一个list，包含zinc_id和分子结构
         self.data = list(zip(self.zinc_id, self.molecules))
         # 过滤和转换
@@ -172,7 +178,7 @@ def ele_filter(zinc_pdbqt_item, elements_list=None):
         if line.startswith(('ATOM', 'HETATM')):
             # ele = line[12:16].strip()
             # 去除元素符号中的非字母字符
-            ele = ''.join(filter(str.isalpha, line[12:16]))
+            ele = line[12:14].strip()
             if ele.upper() in elements_list:
                 continue
             else:
