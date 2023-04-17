@@ -10,19 +10,18 @@ import numpy as np
 from scipy import spatial
 from torch.utils.data import random_split
 from tqdm import tqdm
-
+import pandas as pd
 
 class ZincComplex3a6pData(InMemoryDataset):
 
     def __init__(self, data_dir, transform=None, pre_transform=None, pre_filter=None, **kwargs):
-        self.elements_dict = {'C': 0, 'H': 1, 'N': 2, 'O': 3, 'F': 4, 'S': 5, 'CL': 6, 'BR': 7, 'I': 8, 'P': 9}
+        self.elements_dict = dict(C=0, N=1, O=2, H=3, F=4, S=5, CL=6, BR=7, I=8, SI=9, P=10)
         super().__init__(data_dir, transform, pre_transform, pre_filter)
-
         self.data, self.slices = torch.load(self.processed_paths[0])
 
     @property
     def raw_file_names(self):
-        return ['raw_data.txt']
+        return ['raw_data.h5']
 
     @property
     def processed_file_names(self):
@@ -36,48 +35,43 @@ class ZincComplex3a6pData(InMemoryDataset):
         # Read data into huge `Data` list.
         # raw_data = self.raw_dir
         # read file
-        with open(self.raw_paths[0], 'r') as f:
-            # first line is property_type
-            property_types = f.readline().strip().split()
-            # split data
-            data_original = f.read().strip().split('\n\n')
-        # get data number
-        # num_examples = len(data_original)
-        # data list:[(atom, distance_matrix, label), ...]
-        # items = list()
-        # make every data graph
-        total_ligands_graph = list()
-        for data in tqdm(data_original):
-            # get every row
-            data = data.strip().split('\n')
-            # get data id
-            id = int(data[0][4:])
-            # get property in last row
-            property = torch.tensor(float(data[-1].strip()), dtype=torch.float32)
-            # get atoms and its coordinate
-            atoms, atom_coords = [], []
-            for atom_xyz in data[1:-1]:
-                atom, *xyz = atom_xyz.split()
-                atoms.append(atom)
-                xyz = list(map(float, xyz))
-                atom_coords.append(xyz)
-                # print(xyz)
-            # transform symbols to numbers, such as:{'C':0, 'H':1, ...}
-            atoms = np.array([self.elements_dict[a] for a in atoms])
-            # create distance matrix
-            distance_matrix = spatial.distance_matrix(atom_coords, atom_coords)
-            distance_matrix = np.where(distance_matrix == 0.0, 1e6, distance_matrix)
+        ele_df = pd.DataFrame.from_dict(self.elements_dict, orient='index', columns=['element_id'])
+        
+        with pd.HDFStore(self.raw_paths[0], 'r') as store:
+            coor = store['pos']
+            label = store['label']
+            # 将atom转换为数字
+            coor['atom_id'] = coor['atom'].map(ele_df['element_id'])
+            # 丢弃有none的行
+            coor = coor.dropna()
+            coor = coor.astype({'atom_id': 'int8'})
+            # label = label.astype({'start': 'int32', 'end': 'int32'})
+            # print(label.head())
+            coor: pd.DataFrame
+            label: pd.DataFrame
+        # 利用label分割图
+        total_ligands_graph = []
+        for zinc_id, r in tqdm(label.iterrows()):
+            r: pd.Series
+            # 获取pos
+            r = r.astype('int32')
+            # print(r['start'], r['end'], type(r['start']))
+            # raise Exception
+            pos = coor.iloc[r['start']:r['end']][['x', 'y', 'z']]
+            x = coor.iloc[r['start']:r['end']]['atom_id']
+            y = r[['total', 'inter', 'intra', 'torsions', 'intra best pose']]
             # 构建全连接图的edge_index
-            row, col = [], []
-            # 总共有len(atoms)个节点
-            for i in range(len(atoms)):
-                row.extend([i] * len(atoms))
-                col.extend(range(len(atoms)))
-            edge_index = torch.tensor((col, row), dtype=torch.long)
-            edge_attr = torch.tensor(distance_matrix.reshape(-1, 1), dtype=torch.float32)
-            d = Data(x=torch.tensor(atoms, dtype=torch.long), edge_index=edge_index, edge_attr=edge_attr,
-                     y=property,
-                     pos=torch.tensor(atom_coords), id=torch.tensor(id, dtype=torch.long))
+            edge_index = [[], []]
+            for i in range(len(pos)):
+                edge_index[0].extend([i]*len(pos))
+                edge_index[1].extend(list(range(len(pos))))
+            edge_index = torch.tensor(edge_index, dtype=torch.long)
+            
+            id = int(zinc_id[4:])
+            d = Data(x=torch.tensor(x.values), edge_index=edge_index,
+                     y=torch.tensor(y.values, dtype=torch.float),
+                     pos=torch.tensor(pos.values, dtype=torch.float),
+                     id=torch.tensor(id, dtype=torch.long))
             # return d
             total_ligands_graph.append(d)
 
@@ -91,5 +85,5 @@ class ZincComplex3a6pData(InMemoryDataset):
 
 
 if __name__ == '__main__':
-    data = ZincComplex3a6pData('3a6p/zinc_drug_like_100k/3a6p_pocket5_202020')
+    data = ZincComplex3a6pData('dataset/dataset/3a6p_100w')
     pass
