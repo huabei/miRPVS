@@ -6,7 +6,7 @@
 """
 from data.zinc_complex3a6p_data_e3nn import ZincComplex3a6pDataE3nn
 from torch_geometric.loader import DataLoader
-from model.molecular_e3nn_transformer import MolecularE3nnTransformer
+from models.molecular_e3nn_transformer import MolecularE3nnTransformer
 from data.data_interface import DInterface
 from torch_scatter import scatter_sum
 import pytorch_lightning as pl

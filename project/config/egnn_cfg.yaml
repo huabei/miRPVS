@@ -1,7 +1,7 @@
 
 # This is a template config file for the project. It is used to generate the config file for each run.
-project: egnn
-comment: 测试3_64模型lr_t_max
+project: egnn_large
+comment: multilable_little_large
 group: ~
 tune: False
 seed: 1234
@@ -12,34 +12,37 @@ early_stop:
 
 # 训练配置
 trainer:
-  accelerator: gpu
-  devices: 1
-  fast_dev_run: False
-  max_epochs: 110
-  resume_from_checkpoint: ~
-  auto_lr_find: False
-  auto_scale_batch_size: False
-  enable_progress_bar: False
-  enable_model_summary: False
-  enable_checkpointing: False
+  init:
+    accelerator: gpu
+    devices: 1
+    precision: 32
+    fast_dev_run: False
+    max_epochs: 62
+    enable_progress_bar: True
+    enable_model_summary: True
+    enable_checkpointing: True
+
+  fit:
+    # 从中断的地方继续训练
+    ckpt_path: ~
 
 # 数据模块配置
 pl_data_module:
   dataset: 'zinc_complex3a6p_data'
-  data_dir: 'data/3a6p/zinc_drug_like_100k/3a6p_pocket5_202020'
-  batch_size: 128
+  data_dir: 'data/dataset/dataset/3a6p_100w'
+  batch_size: 64
   num_workers: 4
 
 # 模型配置
 pl_module:
   weight_decay: 0
   loss: 'smooth_l1'
-  model_name: 'egnn'
+  model_name: 'egnn_multilable'
 
   # optimizer
   lr: 5.e-4
   lr_decay_min_lr: 0
-  lr_scheduler: 'cosine'
+  lr_scheduler: 'cosine_warmup'
   # cosine_warmup
   lr_t_0: 2
   lr_t_mult: 2
@@ -48,12 +51,12 @@ pl_module:
   # step
   lr_decay_steps: 1
   lr_decay_rate: 0.9
-
+  
   model:
-    in_node_nf: 10
-    hidden_nf: 64
-    out_node_nf: 1
-    n_layers: 3
-    attention: False
+    in_node_nf: 11
+    hidden_nf: 96
+    out_node_nf: 5
+    n_layers: 4
+    attention: True
     normalize: False
     tanh: False

@@ -1,6 +1,6 @@
 '''训练过程中的一些工具函数'''
-from pytorch_lightning.loggers import TensorBoardLogger, WandbLogger
-import pytorch_lightning.callbacks as plc
+from lightning.pytorch.loggers import TensorBoardLogger, WandbLogger
+import lightning.pytorch.callbacks as plc
 
 def load_callbacks(args):
     # 早停和保存最优模型
@@ -19,7 +19,7 @@ def load_callbacks(args):
         callbacks.append(TuneReportCallback(
             metrics={'loss': 'val_loss'},
             on='validation_end'))
-    if args.trainer.enable_checkpointing:
+    if args.trainer.init.enable_checkpointing:
         callbacks.append(plc.ModelCheckpoint(
                                             dirpath=f'checkpoints/{args.pl_module.model_name}/',
                                             monitor=args.early_stop.monitor,

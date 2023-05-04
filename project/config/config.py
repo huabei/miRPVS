@@ -36,11 +36,7 @@ def set_default_config(config: ConfigDict):
         config.trainer.default_root_dir = log_dir
         config.trainer.fast_dev_run = False
         config.trainer.max_epochs = 100
-        config.trainer.accumulate_grad_batches = 1
-        config.trainer.resume_from_checkpoint = None
         config.trainer.deterministic = False
-        config.trainer.auto_lr_find = False
-        config.trainer.auto_scale_batch_size = False
         config.trainer.enable_progress_bar = True
         config.trainer.enable_model_summary = True
         config.trainer.enable_checkpointing = True
