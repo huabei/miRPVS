@@ -2,6 +2,8 @@ from torch import nn
 import torch
 from torch_scatter import scatter_mean
 from .model_baseclass import E_GCL, PLBaseModel
+import numpy as np
+from sklearn.metrics import r2_score
 
 # class E_GCL(nn.Module):
 #     """
@@ -119,6 +121,7 @@ class EgnnMultilable(PLBaseModel):
                  lr_scheduler: str='cosine',
                  lr_t_0: int=2,
                  lr_t_mul: int=2,
+                 lr_t_max: int=10,
                  in_edge_nf=0,
                  act_fn: str='silu',
                  n_layers=4,
@@ -157,6 +160,7 @@ class EgnnMultilable(PLBaseModel):
                          batch_size=batch_size,
                          lr_t_0=lr_t_0,
                          lr_t_mul=lr_t_mul,
+                         lr_t_max=lr_t_max,
                          weight_decay=weight_decay)
         self.hidden_nf = hidden_nf
         self.n_layers = n_layers
@@ -191,6 +195,21 @@ class EgnnMultilable(PLBaseModel):
     def forward(self, batch):
         p, _ = self.forward_(batch)
         return p
+    
+    def _share_val_step(self, pred, true, stage: str):
+        pred = pred[:, 0]
+        true = true[:, 0]
+        r2 = r2_score(true, pred)
+        pearson = np.corrcoef(true, pred)[0, 1]
+        setattr(self, f'{stage}_pearson', pearson)
+        setattr(self, f'{stage}_r2', r2)
+        fig = self.plot_fit_confidence_bond(true, pred, r2, annot=False)
+        tensorboard_logger = self.loggers[0].experiment
+        tensorboard_logger.add_figure(f'{stage}_fig', fig, global_step=self.global_step)
+        tensorboard_logger.add_scalar(f'{stage}_r2', r2, global_step=self.global_step)
+        if len(self.loggers) > 1:
+            wandb_logger = self.loggers[1].experiment
+            wandb_logger.log({f'{stage}_fig': fig, f'{stage}_r2': r2, f'{stage}_pearson': pearson, 'global_step': self.global_step})
 
 
 if __name__ == "__main__":

@@ -1,19 +1,78 @@
+from typing import Any, Callable, List
 from pytorch_lightning.loggers import TensorBoardLogger
 from ray import air, tune
-from ray.tune import CLIReporter
+from ray.tune import CLIReporter, TuneConfig
 from ray.tune.schedulers import ASHAScheduler
-from main import main
-import yaml
 import os
 import time
-from ml_collections import ConfigDict
-from config.tune_config import config_tune
+# from config.tune_config import config_tune
 import logging
-from argparse import ArgumentParser
+from jsonargparse import Namespace, ArgumentParser, ActionConfigFile, util, capture_parser
 import ray
 # ray.init(num_cpus=4, num_gpus=1, include_dashboard=False, ignore_reinit_error=True)
 # raise Exception('stop')
 os.environ['WANDB_MODE'] = 'offline'
+from cli_main import cli_main
+from models import PLBaseModel
+from datamodule import DInterface
+
+# def cli_main(args):
+#     with open('/home/huabei/tmp/test.txt', 'a') as f:
+#         f.write(str(args))
+#     tune.report(val_loss=0.5)
+    # print(args)
+
+class TuneParameter:
+    def __init__(self, algorithm, **kwargs) -> None:
+        self.sample_algorithm = {'uniform': tune.uniform,
+                    'loguniform': tune.loguniform,
+                    'randint': tune.randint,
+                    'choice': tune.choice,
+                    'grid_search': tune.grid_search}
+        self.algorithm = self.sample_algorithm[algorithm](**kwargs)
+    def __call__(self) -> Any:
+        return self.algorithm
+
+
+class RayTuneCLI():
+    '''
+    模仿pytorchlightningCLI使用命令行和配置文件进行超参数搜索配置的类, 核心类为tune.Tuner
+    '''
+    def __init__(self) -> None:
+        self.parser = self.setup_parser()
+        self.config = self.parse_arguments()
+        
+        # self.parser.instantiate_classes(self.config)
+        # print(self.config)
+        tuner = self.config.tuner.init
+        results = tuner.fit()
+        
+    def setup_parser(self):
+        parser = ArgumentParser()
+        parser.add_argument('-c', '--config', action=ActionConfigFile, help=util.default_config_option_help)
+        parser.add_class_arguments(tune.Tuner, 'tuner.init', fail_untyped=False)
+        parser.add_argument('--tuner.resources_per_trial', type=dict, default={'cpu': 1, 'gpu': 1})
+        parser.add_argument('--tuner.fix_config', type=Namespace, default={})
+        return parser
+
+    def parse_arguments(self):
+        config = self.parser.parse_args()
+        # 构造trainable函数
+        @trainable_decorator
+        def trainable(args):
+            cli_main(args)
+        # 构造param space
+        config.tuner.init.param_space = {k: TuneParameter(**v) for k, v in config.tuner.init.param_space.items()}
+        # 传入固定的参数
+        fn = tune.with_parameters(trainable, fixed_config=config.tuner.fix_config)
+        # 设置每个试验的资源
+        config.tuner.init.trainable = tune.with_resources(fn, config.tuner.resources_per_trial)
+        # 实例化tune config
+        config.tuner.init.tune_config = TuneConfig(**config.tuner.init.tune_config)
+        # 实例化tuner
+        config.tuner.init = tune.Tuner(**config.tuner.init)
+        return config
+
 
 def to_absolute_path(path: str) -> str:
     '''将相对路径转换为绝对路径'''
@@ -24,18 +83,17 @@ def to_absolute_path(path: str) -> str:
 
 def trainable_decorator(func):
     '''装饰ray tune的trainable函数，使其能够接受ray tune的config参数'''
-    def wrapper(config: dict, fixed_config: ConfigDict):
+    def wrapper(config: Namespace, fixed_config: Namespace):
         # 加入可变的已采样的超参数
-        fixed_config.update_from_flattened_dict(config)
-        # 确保进行超参数搜索配置
-        fixed_config.tune = True
-        main(fixed_config)
+        fixed_config.update(config)
+        config['tune']=True
+        func(args=fixed_config)
     return wrapper
-        
 
-def load_scheduler(cfg: ConfigDict):
+
+def load_scheduler(scheduler: str=None):
     '''加载超参数搜索算法'''
-    if cfg.scheduler == 'ASHA':
+    if scheduler == 'ASHA':
         logging.info('Using ASHA scheduler')
         scheduler = ASHAScheduler(
             max_t=cfg.trainer.max_epochs,  # max epoch
@@ -43,44 +101,31 @@ def load_scheduler(cfg: ConfigDict):
             reduction_factor=cfg.reduction_factor,  # 降低因子η，每个周期保留{n/η}个trial
             brackets=1,  # 用于搜索的bracket数目s
         )
-    elif cfg.scheduler is None:
+    elif scheduler is None:
         logging.info('Using default scheduler')
         scheduler = None
     else:
         raise ValueError(f'Unknown scheduler {cfg.scheduler}')
     return scheduler
-    
 
-def main_tune(trainable, cfg_path: str):
+
+def main_tune(param_space: Namespace,
+              fixed_cfg: Namespace,
+              ):
     '''主函数，用于进行超参数搜索
-    Args:
-        trainable: ray tune的trainable函数
-        cfg_path: 配置文件路径
-        num_samples: 总试验数
-        gpus_per_trial: 每个试验使用的gpu数
     '''
-    # 载入配置文件
-    logging.info(f'Loading config from {cfg_path}')
-    tune_cfg, fixed_cfg = config_tune(cfg_path)
-    tune_cfg: dict
-    fixed_cfg: ConfigDict
-    # wandb程序会记录这次运行的配置文件
-    fixed_cfg.config_file = to_absolute_path(cfg_path)
-    # 设置日志文件夹
-    fixed_cfg.log_dir = f'./log/tune/{fixed_cfg.pl_module.model_name}/{fixed_cfg.pl_data_module.dataset}/{fixed_cfg.current_time+"_".join(fixed_cfg.comment.split())}'
-    if not os.path.exists(fixed_cfg.log_dir):
-        os.makedirs(fixed_cfg.log_dir)
-    # 将路径转换为绝对路径，相对路径可能会导致子进程无法找到文件
-    fixed_cfg.log_dir = to_absolute_path(fixed_cfg.log_dir) # 日志文件夹
-    fixed_cfg.pl_data_module.data_dir = to_absolute_path(fixed_cfg.pl_data_module.data_dir) # 数据文件夹
     # 超参数搜索算法
-    scheduler = load_scheduler(fixed_cfg)
+    scheduler = load_scheduler(fixed_cfg.scheduler)
     # 命令行输出内容
     reporter = CLIReporter(
         parameter_columns=None, # 默认显示所有参数
         metric_columns=["loss", "training_iteration"],
         max_report_frequency=20)
     
+    @trainable_decorator
+    def trainable(args, parser_kwargs={'default_config_files': ['project/config/pl_cli_config.yaml']}):
+        cli_main(args, parser_kwargs=parser_kwargs)
+
     # 传入固定的参数
     train_fn_with_parameters = tune.with_parameters(trainable, fixed_config=fixed_cfg)
     # 设置每个试验的资源
@@ -88,7 +133,7 @@ def main_tune(trainable, cfg_path: str):
     # 设置tuner
     tuner = tune.Tuner(
         tune.with_resources(train_fn_with_parameters, resources_per_trial),
-        tune_config=tune.TuneConfig(metric="loss", mode="min", scheduler=scheduler, num_samples=fixed_cfg.num_samples),
+        tune_config=TuneConfig(metric="loss", mode="min", scheduler=scheduler, num_samples=fixed_cfg.num_samples),
         run_config=air.RunConfig(name='tune', progress_reporter=reporter),
         param_space=tune_cfg,
     )
@@ -99,13 +144,18 @@ def main_tune(trainable, cfg_path: str):
 
 
 if __name__ == '__main__':
-    parser = ArgumentParser()
-    parser.add_argument('-c','--cfg_path', type=str, help='config file path')
-    config_path = parser.parse_args().cfg_path
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-
-    @trainable_decorator
-    def main_trainable(args):
-        main(args)
-
-    main_tune(main_trainable, cfg_path=config_path)
+    # parser = ArgumentParser()
+    # parser = capture_parser(
+    #     MyLightningCLI(datamodule_class=DInterface,
+    #                    subclass_mode_model=PLBaseModel,
+    #                    seed_everything_default=1234,
+    #                    auto_configure_optimizers=False,
+    #                    args=None,
+    #                    parser_kwargs={'default_config_files': ['project/config/pl_cli_config.yaml']}
+    #                    )
+    # )
+    # parser.add_class_arguments(tune.Tuner, 'Tuner', fail_untyped=False)
+    RayTuneCLI()
+    # a = parser.parse_args()
+    # print(a)

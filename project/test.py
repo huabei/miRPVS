@@ -1,36 +1,17 @@
-# -*- coding: UTF-8 -*-
-"""
-@author:ZNDX
-@file:test.py
-@time:2022/10/15
-"""
-from data.zinc_complex3a6p_data_e3nn import ZincComplex3a6pDataE3nn
-from torch_geometric.loader import DataLoader
-from models.molecular_e3nn_transformer import MolecularE3nnTransformer
-from data.data_interface import DInterface
-from torch_scatter import scatter_sum
-import pytorch_lightning as pl
-from tqdm import tqdm
-# from model.molecular_graph_conv import MolecularGraphConv
+from jsonargparse import ArgumentParser
 
-if __name__ == '__main__':
-    pl.seed_everything(1234)
-    # dataset = ZincComplex3a6pDataE3nn(
-    #     data_dir='data/3a6p/zinc_drug_like_100k/3a6p_pocket5_202020')
-    data_dir = 'data/3a6p/zinc_drug_like_100k/3a6p_pocket5_202020'
-    dataset = 'zinc_complex3a6p_data_e3nn'
-    d = DInterface(dataset=dataset, data_dir=data_dir, batch_size=128)
-    d.setup(stage='fit')
-    # model = MolecularGraphConv(10, 128, 1, 2, 6)
-    model = MolecularE3nnTransformer(10, 128, 1, 4, 3)
-    # dataloader = DataLoader(d, batch_size=128, shuffle=True)
-    for epoch in range(100):
-        print(epoch)
-        for batch_data in tqdm(d.train_dataloader()):
-            results = model(batch_data)
-            # x = scatter_sum(batch_data.x[batch_data.edge_index[0]], batch_data.edge_index[1], dim=0)
-            # scatter_sum(x, batch_data.batch, dim=0)
-            pass
-        # break
-    # model = MolecularE3nnEgcn(10, hidden_channels=128, hidden_layers=3, out_layers=8, out_channels=1)
-    # model(batch_data)
+parser_subcomm1 = ArgumentParser()
+
+parser_subcomm1.add_argument('--num_samples', type=int, default=1, help='Number of trials')
+parser_subcomm2 = ArgumentParser()
+parser_subcomm2.add_argument('--gpus_per_trial', type=int, default=1, help='Number of gpus per trial')
+parser = ArgumentParser()
+parser.add_argument('--cfg_path', type=str, help='config file path')
+subcommands = parser.add_subcommands()
+
+subcommands.add_subcommand('subcomm1', parser_subcomm1)
+
+subcommands.add_subcommand('subcomm2', parser_subcomm2)
+
+arg = parser.parse_args(['subcomm1', '--num_samples', '2'])
+

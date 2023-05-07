@@ -37,6 +37,7 @@ class PLBaseModel(pl.LightningModule):
         self.training_step_outputs['preds'].append(p_energy)
         self.training_step_outputs['true'].append(y)
         loss = self.loss_function(torch.squeeze(p_energy), y)
+        self.train_loss = loss
         self.log('train_loss', loss, prog_bar=True, batch_size=self.hparams.batch_size)
         return {'loss': loss, 'preds': p_energy, 'true': y}
 
@@ -58,6 +59,7 @@ class PLBaseModel(pl.LightningModule):
         self.validation_step_outputs['preds'].append(p_energy)
         self.validation_step_outputs['true'].append(y)
         loss = self.loss_function(torch.squeeze(p_energy), y)
+        self.val_loss = loss
         self.log('val_loss', loss, prog_bar=True, batch_size=self.hparams.batch_size)
         return {'loss': loss, 'preds': p_energy, 'true': y}
 
@@ -90,7 +92,9 @@ class PLBaseModel(pl.LightningModule):
     def _share_val_step(self, pred, true, stage: str):
         r2 = r2_score(true, pred)
         pearson = np.corrcoef(true, pred)[0, 1]
-        fig = plot_fit_confidence_bond(true, pred, r2, annot=False)
+        setattr(self, f'{stage}_pearson', pearson)
+        setattr(self, f'{stage}_r2', r2)
+        fig = self.plot_fit_confidence_bond(true, pred, r2, annot=False)
         tensorboard_logger = self.loggers[0].experiment
         tensorboard_logger.add_figure(f'{stage}_fig', fig, global_step=self.global_step)
         tensorboard_logger.add_scalar(f'{stage}_r2', r2, global_step=self.global_step)
@@ -135,6 +139,24 @@ class PLBaseModel(pl.LightningModule):
             self.loss_function = F.smooth_l1_loss
         else:
             raise ValueError("Invalid Loss Type!")
+
+    @staticmethod
+    def plot_fit_confidence_bond(x, y, r2, annot=True):
+
+        fig, ax = plt.subplots()
+        ax.plot([-20, 0], [-20, 0], '-')
+        ax.plot(x, y, 'o', color='tab:brown')
+        if annot:
+            num = 0
+            for x_i, y_i in zip(x, y):
+                ax.annotate(str(num), (x_i, y_i))
+                num += 1
+        ax.set_xlabel('True Energy(Kcal/mol)')
+        ax.set_ylabel('Predict Energy(Kcal/mol)')
+        ax.text(0.4, 0.9,
+                'r2:  ' + str(r2), horizontalalignment='center', verticalalignment='center', transform=ax.transAxes,
+                fontsize=12)
+        return fig
 
 
 class E_GCL(nn.Module):
@@ -240,24 +262,6 @@ class E_GCL(nn.Module):
 
         return h, coord, edge_attr # 新的node特征和坐标
 
-
-
-def plot_fit_confidence_bond(x, y, r2, annot=True):
-
-    fig, ax = plt.subplots()
-    ax.plot([-20, 0], [-20, 0], '-')
-    ax.plot(x, y, 'o', color='tab:brown')
-    if annot:
-        num = 0
-        for x_i, y_i in zip(x, y):
-            ax.annotate(str(num), (x_i, y_i))
-            num += 1
-    ax.set_xlabel('True Energy(Kcal/mol)')
-    ax.set_ylabel('Predict Energy(Kcal/mol)')
-    ax.text(0.4, 0.9,
-            'r2:  ' + str(r2), horizontalalignment='center', verticalalignment='center', transform=ax.transAxes,
-            fontsize=12)
-    return fig
 
 
 def unsorted_segment_sum(data, segment_ids, num_segments):

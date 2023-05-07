@@ -2,6 +2,7 @@ import collections
 import os
 import gzip
 import re
+from time import localtime, strftime
 from tqdm import tqdm
 import random
 import io
@@ -9,7 +10,6 @@ from collections import defaultdict
 import pickle
 import pandas as pd
 import numpy as np
-import copy
 import functools
 
 
@@ -317,3 +317,66 @@ def map_and_conjunction(func, iterables):
     assert len(iterables) > 1, 'iterables must be more than 1'
     return functools.reduce(lambda x, y: x+y, list(map(func, iterables)))
 
+# 获取当前时间
+CURRENT_TIME = strftime("%Y-%m-%d-%H-%M-%S", localtime())
+
+class MyLightningCLI(LightningCLI):
+    def add_arguments_to_parser(self, parser):
+        parser.add_argument('--project', default='test', type=str)
+        parser.add_argument('--group', default=None, type=str)
+        parser.add_argument('--wandb', default=False, type=bool)
+        parser.add_argument('--comment', default=None, type=str)
+        parser.add_argument('--tune', default=False, type=bool)
+
+        def compute_fn(x1, x2, x3):
+            if x3:
+                return 'log/tune/' + x1.split('.')[-1] + '/' + x2
+            return 'log/' + x1.split('.')[-1] + '/' + x2
+        parser.link_arguments(['model.class_path', 'data.dataset', 'tune'], 'trainer.default_root_dir', compute_fn=compute_fn)
+
+        
+    def before_instantiate_classes(self) -> None:
+        if self.config[self.config.subcommand].wandb:
+            import wandb
+            wandb.login(key='local-8fe6e6b5840c4c05aaaf6aac5ca8c1fb58abbd1f', host='http://localhost:8080')
+            wandb.init(project=self.config[self.config.subcommand].project, group=self.config[self.config.subcommand].group, notes=self.config[self.config.subcommand].comment, dir=self.config[self.config.subcommand].trainer.default_root_dir)
+
+        else:
+            # remove wandblogger
+            self.config[self.config.subcommand].trainer.logger.pop()
+        # overwrite logger init_args
+        self.config[self.config.subcommand].trainer.logger[0].init_args.save_dir = self.config[self.config.subcommand].trainer.default_root_dir
+        # checkpoints name
+        if self.config[self.config.subcommand].trainer.enable_checkpointing:
+            self.config[self.config.subcommand].trainer.callbacks[0].init_args.filename = CURRENT_TIME + '-best-{epoch}-{val_loss:.2f}'
+        else:
+            self.config[self.config.subcommand].trainer.callbacks.pop(0)
+        # raise Exception('test')
+    
+    # def before_fit(self) -> None:
+        # print(self.config)
+        # raise Exception('test')
+        
+    def after_fit(self) -> None:
+        if self.config[self.config.subcommand].wandb:
+            import wandb
+            wandb.finish()
+        if True:
+            import requests
+            import json
+            import os
+            # 给手机发消息
+            url = 'https://sctapi.ftqq.com/{}.send'.format(os.getenv('SERVER_CHAN_SEND_KEY'))
+            data = {
+                'title': '训练完成',
+                'desp': '训练完成:\n\ntrain_loss: {:.4f}, val_loss= {:.4f};\n\ntrain_pearson: {:.4f}, val_pearson: {:.4f};\n\ntrain_r2: {:.4f}, val_r2: {:.4f}'.format(
+                    self.model.train_loss,
+                    self.model.val_loss, 
+                    self.model.train_pearson,
+                    self.model.val_pearson,
+                    self.model.train_r2,
+                    self.model.val_r2,
+                    )
+            }
+            requests.post(url, data)
+        # raise Exception('test')

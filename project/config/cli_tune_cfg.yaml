@@ -1,0 +1,55 @@
+tuner:
+  init:
+    trainable: null # will be overwrittern
+    param_space:
+    # scientific
+      model.lr:
+        algorithm: uniform
+        lower: 0.0001
+        upper: 0.01
+      model.weight_decay:
+        algorithm: uniform
+        lower: 0.0000001
+        upper: 0.0001
+      model.n_layers:
+        algorithm: choice
+        categories: [2, 4, 6, 8]
+      model.hidden_nf:
+        algorithm: choice
+        categories: [64, 128]
+    tune_config:
+      metric: val_loss
+      mode: min
+      scheduler: null
+      num_samples: 10
+        # class_path: tune.schedulers.ASHAScheduler
+        # init_args:
+        #   max_t: 10
+        #   grace_period: 1
+        #   reduction_factor: 2
+    run_config: null
+  resources_per_trial:
+    cpu: 4
+    gpu: 0.5
+  fix_config:
+    fit:
+      project: egnn_tune
+      comment: egnn tune choose model
+      group: 验证independent attention的性能
+      wandb: True
+      trainer:
+        max_epochs: 2
+        fast_dev_run: False
+        - class_path: ray.tune.integration.pytorch_lightning.TuneReportCallback
+          init_args:
+            metrics: val_loss
+            on: validation_end
+        enable_checkpointing: False
+        enable_progress_bar: False
+        enable_model_summary: False
+      data:
+        batch_size: 32
+        num_workers: 4
+        dataset: 'zinc_complex3a6p_data_test'
+        data_dir: 'data/dataset/dataset/3a6p_100w'
+    
