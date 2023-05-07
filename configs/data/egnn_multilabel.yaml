@@ -1,0 +1,6 @@
+_target_: src.data.DInterface
+dataset: zinc_complex3a6p_data
+data_dir: ${paths.data_dir}/dataset/3a6p_100w
+batch_size: 64
+num_workers: 4
+pin_memory: False

@@ -1,5 +1,0 @@
-defaults:
-  - override /data: mnist.yaml
-  - override /model: mnist.yaml
-  - override /callbacks: default.yaml
-  - override /trainer: default.yaml
