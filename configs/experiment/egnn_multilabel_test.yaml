@@ -12,13 +12,15 @@ defaults:
 # all parameters below will be merged with parameters from default configurations set above
 # this allows you to overwrite only specified parameters
 
+task_name: "test"
+
 tags: ["test1", "test2"]
 
 seed: 1234
 
 trainer:
   min_epochs: 1
-  max_epochs: 10
+  max_epochs: 2
 
 model:
   optimizer:

@@ -1,9 +1,13 @@
 from typing import Any
 
+import numpy as np
 import torch
 from lightning import LightningModule
+from lightning.pytorch.loggers import WandbLogger
 from torch_geometric.data import Data
 from torchmetrics import MaxMetric, MeanMetric, PearsonCorrCoef, R2Score
+
+from src.utils.plot_fig import plot_fig
 
 
 class SMTARRNAModule(LightningModule):
@@ -66,6 +70,9 @@ class SMTARRNAModule(LightningModule):
         self.val_r2.reset()
         self.val_pearson_best.reset()
 
+    def on_train_epoch_start(self) -> None:
+        self.train_results = {"preds": [], "targets": []}
+
     def model_step(self, batch: Data):
         y = batch.y
         preds = self.forward(batch)
@@ -74,12 +81,14 @@ class SMTARRNAModule(LightningModule):
 
     def training_step(self, batch: Any, batch_idx: int):
         loss, preds, targets = self.model_step(batch)
-
+        self.train_results["preds"].append(preds[:, 0])
+        self.train_results["targets"].append(targets[:, 0])
         # update and log metrics
         self.train_loss(loss)
 
         self.train_pearson(preds[:, 0], targets[:, 0])
         self.train_r2(preds[:, 0], targets[:, 0])
+        self.log("lr", self.optimizers().optimizer.param_groups[0]["lr"])
         self.log("train/loss", self.train_loss, on_step=False, on_epoch=True, prog_bar=True)
         self.log("train/pearson", self.train_pearson, on_step=False, on_epoch=True, prog_bar=True)
         self.log("train/r2", self.train_r2, on_step=False, on_epoch=True, prog_bar=True)
@@ -90,9 +99,15 @@ class SMTARRNAModule(LightningModule):
     def on_train_epoch_end(self):
         pass
 
+    def on_validation_epoch_start(self) -> None:
+        self.val_results = {"preds": [], "targets": []}
+        return super().on_validation_epoch_start()
+
     def validation_step(self, batch: Any, batch_idx: int):
         loss, preds, targets = self.model_step(batch)
-
+        # save results for visualization
+        self.val_results["preds"].append(preds[:, 0])
+        self.val_results["targets"].append(targets[:, 0])
         # update and log metrics
         self.val_loss(loss)
         self.val_pearson(preds[:, 0], targets[:, 0])
@@ -110,9 +125,40 @@ class SMTARRNAModule(LightningModule):
             "val/pearson_best", self.val_pearson_best.compute(), sync_dist=True, prog_bar=True
         )
 
+    def on_train_end(self) -> None:
+        # 绘制最终结果
+        train_pred_y = (
+            torch.concat([x for x in self.train_results["preds"]]).detach().cpu().numpy()
+        )
+        train_targets_y = (
+            torch.concat([x for x in self.train_results["targets"]]).detach().cpu().numpy()
+        )
+        val_pred_y = torch.concat([x for x in self.val_results["preds"]]).detach().cpu().numpy()
+        val_targets_y = (
+            torch.concat([x for x in self.val_results["targets"]]).detach().cpu().numpy()
+        )
+
+        train_fig = plot_fig(train_pred_y, train_targets_y)
+        val_fig = plot_fig(val_pred_y, val_targets_y)
+        for logger in self.loggers:
+            if isinstance(logger, WandbLogger):
+                import wandb
+
+                logger.experiment.log(
+                    {"train/fig": wandb.Image(train_fig), "val/fig": wandb.Image(val_fig)}
+                )
+                break
+        return super().on_train_end()
+
+    def on_test_epoch_start(self) -> None:
+        self.test_results = {"preds": [], "targets": []}
+        return super().on_test_epoch_start()
+
     def test_step(self, batch: Any, batch_idx: int):
         loss, preds, targets = self.model_step(batch)
-
+        # save results for visualization
+        self.test_results["preds"].append(preds[:, 0])
+        self.test_results["targets"].append(targets[:, 0])
         # update and log metrics
         self.test_loss(loss)
         self.test_pearson(preds[:, 0], targets[:, 0])
@@ -122,7 +168,17 @@ class SMTARRNAModule(LightningModule):
         self.log("test/r2", self.test_r2, on_step=False, on_epoch=True, prog_bar=True)
 
     def on_test_epoch_end(self):
-        pass
+        test_pred_y = torch.concat([x for x in self.test_results["preds"]]).detach().cpu().numpy()
+        test_targets_y = (
+            torch.concat([x for x in self.test_results["targets"]]).detach().cpu().numpy()
+        )
+        test_fig = plot_fig(test_pred_y, test_targets_y)
+        for logger in self.loggers:
+            if isinstance(logger, WandbLogger):
+                import wandb
+
+                logger.experiment.log({"test/fig": wandb.Image(test_fig)})
+                break
 
     def configure_optimizers(self):
         """Choose what optimizers and learning-rate schedulers to use in your optimization.

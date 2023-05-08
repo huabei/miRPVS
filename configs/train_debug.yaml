@@ -7,7 +7,7 @@ defaults:
   - data: egnn_multilabel.yaml
   - model: egnn_multilabel.yaml
   - callbacks: default.yaml
-  - logger: null # set logger here or use command line (e.g. `python train.py logger=tensorboard`)
+  - logger: many_loggers.yaml # set logger here or use command line (e.g. `python train.py logger=tensorboard`)
   - trainer: default.yaml
   - paths: default.yaml
   - extras: default.yaml
@@ -15,10 +15,10 @@ defaults:
 
   # experiment configs allow for version control of specific hyperparameters
   # e.g. best hyperparameters for given model and datamodule
-  - experiment: null
+  - experiment: egnn_multilabel_test.yaml
 
   # config for hyperparameter optimization
-  - hparams_search: null
+  - hparams_search: egnn_optuna_ray.yaml
 
   # optional local config for machine/user specific settings
   # it's optional since it doesn't need to exist and is excluded from version control
