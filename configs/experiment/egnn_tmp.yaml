@@ -13,26 +13,26 @@ defaults:
 # this allows you to overwrite only specified parameters
 
 # task name, determines output directory path
-task_name: "train"
+task_name: "egnn_multilabel_train"
 
-tags: ["egnn_multilabel", "cosine_warmup"]
+tags: ["egnn_multilabel", "cosine", "test"]
 
 seed: 1234
 
 trainer:
   min_epochs: 1
-  max_epochs: 28
+  max_epochs: 60
 
 model:
   optimizer:
     lr: 0.0005
-    weight_decay: 0.0
   scheduler:
-    T_0: 3
+    eta_min: 0.0001
+
   net:
     in_node_nf: 11
     hidden_nf: 128
-    out_node_nf: 1
+    out_node_nf: 5
     n_layers: 4
     attention: true
 
@@ -45,6 +45,7 @@ data:
 
 logger:
   wandb:
-    project: egnn_multilabel
+    project: test
     tags: ${tags}
     group: cosine
+    offline: False

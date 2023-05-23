@@ -8,12 +8,13 @@ defaults:
   - override /model: egnn_multilabel.yaml
   - override /callbacks: default.yaml
   - override /trainer: default.yaml
+  - override /model/scheduler: cosine_warmup.yaml
 
 # all parameters below will be merged with parameters from default configurations set above
 # this allows you to overwrite only specified parameters
 
 # task name, determines output directory path
-task_name: "train"
+task_name: "test"
 
 tags: ["egnn_multilabel", "cosine_warmup"]
 
@@ -32,14 +33,14 @@ model:
   net:
     in_node_nf: 11
     hidden_nf: 128
-    out_node_nf: 1
+    out_node_nf: 5
     n_layers: 4
     attention: true
 
 data:
   data_dir: ${paths.data_dir}/dataset/3a6p_100w
   dataset: zinc_complex3a6p_data
-  batch_size: 64
+  batch_size: 1024
   num_workers: 8
   pin_memory: True
 
@@ -48,3 +49,4 @@ logger:
     project: egnn_multilabel
     tags: ${tags}
     group: cosine
+    offline: True

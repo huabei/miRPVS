@@ -67,6 +67,7 @@ class DInterface(pl.LightningDataModule):
             batch_size=self.hparams.batch_size,
             num_workers=self.hparams.num_workers,
             shuffle=False,
+            pin_memory=self.hparams.pin_memory,
         )
 
     def val_dataloader(self):
@@ -75,6 +76,7 @@ class DInterface(pl.LightningDataModule):
             batch_size=self.hparams.batch_size,
             num_workers=self.hparams.num_workers,
             shuffle=False,
+            pin_memory=self.hparams.pin_memory,
         )
 
     def test_dataloader(self):
@@ -83,6 +85,7 @@ class DInterface(pl.LightningDataModule):
             batch_size=self.hparams.batch_size,
             num_workers=self.hparams.num_workers,
             shuffle=False,
+            pin_memory=self.hparams.pin_memory,
         )
 
     def load_data_module(self):

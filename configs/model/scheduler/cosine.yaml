@@ -1,4 +1,4 @@
 _target_: torch.optim.lr_scheduler.CosineAnnealingLR
 _partial_: true
 T_max: ${trainer.max_epochs}
-eta_min: 0.000001
+eta_min: 0.0001

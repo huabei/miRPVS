@@ -35,7 +35,7 @@ class SMTARRNAModule(LightningModule):
 
         # this line allows to access init params with 'self.hparams' attribute
         # also ensures init params will be stored in ckpt
-        self.save_hyperparameters(logger=False)
+        self.save_hyperparameters(logger=False, ignore=["net"])
 
         self.net = net
 
@@ -65,6 +65,10 @@ class SMTARRNAModule(LightningModule):
     def on_train_start(self):
         # by default lightning executes validation step sanity checks before training starts,
         # so it's worth to make sure validation metrics don't store results from these checks
+        for logger in self.loggers:
+            if isinstance(logger, WandbLogger):
+                # print('watching model')
+                logger.watch(self.net, log="all", log_freq=100, log_graph=False)
         self.val_loss.reset()
         self.val_pearson.reset()
         self.val_r2.reset()

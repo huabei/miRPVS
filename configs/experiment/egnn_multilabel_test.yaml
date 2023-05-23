@@ -5,7 +5,7 @@
 
 defaults:
   - override /data: egnn_multilabel.yaml
-  - override /model: egnn_multilabel.yaml
+  - override /model: egnn_singlelabel.yaml
   - override /callbacks: default.yaml
   - override /trainer: default.yaml
 
@@ -24,7 +24,7 @@ trainer:
 
 model:
   optimizer:
-    lr: 0.002
+    lr: 0.0005
     weight_decay: 0.0
   scheduler:
     T_max: ${trainer.max_epochs}
@@ -32,7 +32,7 @@ model:
   net:
     in_node_nf: 11
     hidden_nf: 64
-    out_node_nf: 5
+    out_node_nf: 1
     n_layers: 1
     attention: false
 
@@ -46,3 +46,4 @@ logger:
     project: test
     tags: ${tags}
     group: null
+    offline: true

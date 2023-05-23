@@ -5,7 +5,7 @@
 
 defaults:
   - override /data: egnn_multilabel.yaml
-  - override /model: egnn_multilabel.yaml
+  - override /model: egnn_singlelabel.yaml
   - override /callbacks: default.yaml
   - override /trainer: default.yaml
 
@@ -13,22 +13,20 @@ defaults:
 # this allows you to overwrite only specified parameters
 
 # task name, determines output directory path
-task_name: "train"
+task_name: "egnn_singlelabel_sweep_lr"
 
-tags: ["egnn_multilabel", "cosine_warmup"]
+tags: ["sweep_lr", "cosine"]
 
 seed: 1234
 
 trainer:
   min_epochs: 1
-  max_epochs: 28
+  max_epochs: 60
 
 model:
   optimizer:
     lr: 0.0005
     weight_decay: 0.0
-  scheduler:
-    T_0: 3
   net:
     in_node_nf: 11
     hidden_nf: 128
@@ -38,13 +36,14 @@ model:
 
 data:
   data_dir: ${paths.data_dir}/dataset/3a6p_100w
-  dataset: zinc_complex3a6p_data
+  dataset: zinc_complex3a6p_data_test
   batch_size: 64
   num_workers: 8
   pin_memory: True
 
 logger:
   wandb:
-    project: egnn_multilabel
+    project: egnn_singlelabel
     tags: ${tags}
-    group: cosine
+    group: lr_sweep
+    offline: True

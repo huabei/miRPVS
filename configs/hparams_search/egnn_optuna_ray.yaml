@@ -14,6 +14,7 @@ optimized_metric: "val/pearson_best"
 
 extras:
   ignore_warnings: True
+  print_config: False
 
 logger:
   wandb:
@@ -42,7 +43,7 @@ hydra:
     direction: maximize
 
     # total number of runs that will be executed
-    n_trials: 5
+    # n_trials: 10
 
     # choose Optuna hyperparameter sampler
     # you can choose bayesian sampler (tpe), random search (without optimization), grid sampler, and others
@@ -52,14 +53,14 @@ hydra:
       seed: 1234
 
     # define hyperparameter search space
-    params:
-      model.optimizer.lr: tag(log, interval(0.00001, 0.001))
-      model.net.hidden_nf: choice(64, 128)
+    # params:
+    #   model.optimizer.lr: tag(log, interval(0.00001, 0.001))
+    # model.net.hidden_nf: choice(64, 128)
   launcher:
     ray:
       init:
-        include_dashboard: true
-        num_cpus: 8
+        include_dashboard: False
+        num_cpus: 40
       remote:
-        num_cpus: 4
-        num_gpus: 0.5
+        num_cpus: 10
+        num_gpus: 1
