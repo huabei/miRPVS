@@ -1,5 +1,5 @@
 defaults:
-  - scheduler: cosine.yaml
+  - scheduler: step.yaml
 
 _target_: src.models.smtr_module.SMTARRNAModule
 
