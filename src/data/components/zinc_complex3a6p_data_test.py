@@ -43,12 +43,11 @@ class ZincComplex3a6pDataTest(InMemoryDataset):
             label = store["label"]
             # 将atom转换为数字
             coor["atom_id"] = coor["atom"].map(ele_df["element_id"])
-            # 丢弃有none的行
-            coor = coor.dropna()
-            coor = coor.astype({"atom_id": "int8"})
-            label = label.dropna()
-            # label = label.astype({'start': 'int32', 'end': 'int32'})
-            # print(label.head())
+            print(coor[coor["atom_id"].isnull()])
+
+            assert (
+                len(coor) == label["end"].max()
+            ), f"coor length is {len(coor)}, label length is {label['end'].max()}"
             coor: pd.DataFrame
             label: pd.DataFrame
         # 利用label分割图
@@ -56,15 +55,19 @@ class ZincComplex3a6pDataTest(InMemoryDataset):
         # t = 0
         for zinc_id, r in tqdm(label.iterrows()):
             id = int(zinc_id[4:])
-            if id in [562412253, 584535530, 342391465]:  # 有问题的数据
-                print(zinc_id)
-                continue
+            # if id in [562412253, 584535530, 342391465]:  # 有问题的数据
+            #     print(zinc_id)
+            #     continue
             r: pd.Series
             # 获取pos
             # print(r['start'], r['end'], type(r['start']))
             # raise Exception
             start = int(r["start"])
             end = int(r["end"])
+            # 跳过含有none的数据
+            if coor.iloc[start:end]["atom_id"].isnull().any():
+                print(f"skip {zinc_id}")
+                continue
             pos = coor.iloc[start:end][["x", "y", "z"]]
             x = coor.iloc[start:end]["atom_id"]
             y = r[["total", "inter", "intra", "torsions", "intra best pose"]]
@@ -95,3 +98,8 @@ class ZincComplex3a6pDataTest(InMemoryDataset):
             total_ligands_graph = [self.pre_transform(data) for data in total_ligands_graph]
         data, slices = self.collate(random.sample(total_ligands_graph, 10000))
         torch.save((data, slices), self.processed_paths[0])
+
+
+if __name__ == "__main__":
+    data = ZincComplex3a6pDataTest("data/dataset/dataset/3a6p_100w")
+    pass

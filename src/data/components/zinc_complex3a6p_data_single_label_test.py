@@ -41,12 +41,11 @@ class ZincComplex3a6pDataSingleLabelTest(InMemoryDataset):
             label = store["label"]
             # 将atom转换为数字
             coor["atom_id"] = coor["atom"].map(ele_df["element_id"])
-            # 丢弃有none的行
-            coor = coor.dropna()
-            coor = coor.astype({"atom_id": "int8"})
-            label = label.dropna()
-            # label = label.astype({'start': 'int32', 'end': 'int32'})
-            # print(label.head())
+            print(coor[coor["atom_id"].isnull()])
+
+            assert (
+                len(coor) == label["end"].max()
+            ), f"coor length is {len(coor)}, label length is {label['end'].max()}"
             coor: pd.DataFrame
             label: pd.DataFrame
         # 利用label分割图
