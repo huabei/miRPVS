@@ -29,7 +29,7 @@ class SMTARRNAModule(LightningModule):
         self,
         net: torch.nn.Module,
         optimizer: torch.optim.Optimizer,
-        scheduler: torch.optim.lr_scheduler,
+        scheduler: torch.optim.lr_scheduler = None,
     ):
         super().__init__()
 

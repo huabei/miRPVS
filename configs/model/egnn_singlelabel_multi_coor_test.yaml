@@ -1,0 +1,19 @@
+defaults:
+  - scheduler: step.yaml
+
+_target_: src.models.smtr_module.SMTARRNAModule
+
+optimizer:
+  _target_: torch.optim.Adam
+  _partial_: true
+  lr: 0.0005
+  weight_decay: 0.0
+
+net:
+  _target_: src.models.components.egnn_multi_coor.EgnnMultiCoor
+  in_node_nf: 11
+  hidden_nf: 128
+  out_node_nf: 1
+  coor_channels: 12
+  n_layers: 3
+  attention: true

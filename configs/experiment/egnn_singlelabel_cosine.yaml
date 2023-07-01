@@ -8,7 +8,7 @@ defaults:
   - override /model: egnn_singlelabel.yaml
   - override /callbacks: default.yaml
   - override /trainer: default.yaml
-  # - override /model/scheduler: cosine_warmup.yaml
+  - override /model/scheduler: cosine.yaml
 
 # all parameters below will be merged with parameters from default configurations set above
 # this allows you to overwrite only specified parameters
