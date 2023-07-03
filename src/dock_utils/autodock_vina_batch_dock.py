@@ -15,8 +15,6 @@ from vina import Vina
 
 from utils import ZincPdbqt, gz_writer
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
-
 TIME = time.strftime("%Y%m%d%H%M%S", time.localtime(time.time()))
 
 OUTPUT_DIR = "outputs"
@@ -123,8 +121,15 @@ if __name__ == "__main__":
         receptor_name=receptor,
         ligand_file=ligand_file,
     )
+    # 配置日志输出文件
+    logging.basicConfig(
+        filename=f"log/{receptor}_{start}_{stop}_{EXHAUSTIVENESS}_{TIME}.log",
+        level=logging.INFO,
+        format="%(asctime)s %(levelname)s %(message)s",
+    )
+    # 记录开始时间
     start_time = time.time()
     main(params)
     end_time = time.time()
-    print(f"cost time: {end_time - start_time}s")
+    logging.info(f"cost time: {end_time - start_time}s")
     # pass
