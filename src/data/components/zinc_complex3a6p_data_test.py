@@ -9,12 +9,15 @@ import random
 import torch
 from torch_geometric.data import Data
 from tqdm import tqdm
-from zinc_complex_base import ZincComplexBase
+
+from .zinc_complex_base import ZincComplexBase
 
 
 class ZincComplex3a6pDataTest(ZincComplexBase):
-    def __init__(self, data_dir, transform=None, pre_transform=None, pre_filter=None, **kwargs):
-        super().__init__(data_dir, transform, pre_transform, pre_filter)
+    def __init__(
+        self, data_dir, train=True, transform=None, pre_transform=None, pre_filter=None, **kwargs
+    ):
+        super().__init__(data_dir, train, transform, pre_transform, pre_filter)
 
     @property
     def raw_file_names(self):
@@ -58,7 +61,7 @@ class ZincComplex3a6pDataTest(ZincComplexBase):
             # t += 1
             # if t > 10000:
             #     break
-        self.save_data(total_ligands_graph)
+        self.save_data(total_ligands_graph, self.processed_paths[0])
 
 
 if __name__ == "__main__":

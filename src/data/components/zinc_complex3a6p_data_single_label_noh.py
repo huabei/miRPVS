@@ -8,12 +8,13 @@ import logging
 import torch
 from torch_geometric.data import Data
 from tqdm import tqdm
-from zinc_complex_base import ZincComplexBase
+
+from .zinc_complex_base import ZincComplexBase
 
 
 class ZincComplex3a6pDataSingleLabelNoh(ZincComplexBase):
-    def __init__(self, data_dir, transform=None, pre_transform=None, pre_filter=None):
-        super().__init__(data_dir, transform, pre_transform, pre_filter)
+    def __init__(self, data_dir, train=True, transform=None, pre_transform=None, pre_filter=None):
+        super().__init__(data_dir, train, transform, pre_transform, pre_filter)
 
     @property
     def raw_file_names(self):
@@ -64,13 +65,7 @@ class ZincComplex3a6pDataSingleLabelNoh(ZincComplexBase):
             # if t > 10000:
             #     break
 
-        if self.pre_filter is not None:
-            total_ligands_graph = [data for data in total_ligands_graph if self.pre_filter(data)]
-
-        if self.pre_transform is not None:
-            total_ligands_graph = [self.pre_transform(data) for data in total_ligands_graph]
-        data, slices = self.collate(total_ligands_graph)
-        torch.save((data, slices), self.processed_paths[0])
+        self.save_data(total_ligands_graph, self.processed_paths[0])
 
 
 if __name__ == "__main__":

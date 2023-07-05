@@ -14,6 +14,7 @@
 
 import importlib
 import inspect
+import logging
 from typing import Optional
 
 import lightning.pytorch as pl
@@ -47,19 +48,25 @@ class DInterface(pl.LightningDataModule):
 
     def setup(self, stage=None):
         """这个函数会在PL初始化中自动调用，根据不同的stage,选择生成不同的Dataloader，"""
-
-        if not self.data_train and not self.data_val and not self.data_test:
-            self.load_data_module()
+        self.load_data_module()
+        if stage == "fit" or stage is None:
             # Assign train/val datasets for use in dataloaders
-            dataset = self.instancialize(data_dir=self.hparams.data_dir)
+            dataset = self.instancialize(data_dir=self.hparams.data_dir, train=True)
             train_size = int(len(dataset) * 0.8)
-            val_size = int(len(dataset) * 0.1)
-            test_size = len(dataset) - train_size - val_size
-            self.data_train, self.data_val, self.data_test = random_split(
+            # val_size = int(len(dataset) * 0.2)
+            val_size = len(dataset) - train_size
+            self.data_train, self.data_val = random_split(
                 dataset,
-                [train_size, val_size, test_size],
+                [train_size, val_size],
                 generator=torch.Generator().manual_seed(1234),
             )
+        elif stage == "test":
+            self.data_test = self.instancialize(data_dir=self.hparams.data_dir, train=False)
+
+        elif stage == "predict":
+            logging.warning("No predict dataset!")
+        else:
+            raise ValueError(f"Stage {stage} not recognized")
 
     def train_dataloader(self):
         return DataLoader(
@@ -95,14 +102,14 @@ class DInterface(pl.LightningDataModule):
         # Please always name your model file name as `snake_case.py` and
         # class name corresponding `CamelCase`.
         camel_name = "".join([i.capitalize() for i in name.split("_")])
-        try:
-            self.data_module = getattr(
-                importlib.import_module(".components." + name, package=__package__), camel_name
-            )
-        except (ImportError, AttributeError):
-            raise ValueError(
-                f"Invalid Dataset File Name or Invalid Class Name data.components.{name}.{camel_name}"
-            )
+        # try:
+        self.data_module = getattr(
+            importlib.import_module(".components." + name, package=__package__), camel_name
+        )
+        # except (ImportError, AttributeError):
+        #     raise ValueError(
+        #         f"Invalid Dataset File Name or Invalid Class Name data.components.{name}.{camel_name}"
+        #     )
 
     def instancialize(self, **other_args):
         """Instancialize a model using the corresponding parameters from self.hparams dictionary.

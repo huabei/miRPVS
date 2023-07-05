@@ -8,10 +8,15 @@ from torch_geometric.data import InMemoryDataset
 class ZincComplexBase(InMemoryDataset):
     """此类用于定义数据集的基类，包含了一些共有的方法，如数据集的读取、处理等."""
 
-    def __init__(self, data_dir, transform=None, pre_transform=None, pre_filter=None):
+    def __init__(self, data_dir, train=True, transform=None, pre_transform=None, pre_filter=None):
         self.elements_dict = dict(C=0, N=1, O=2, H=3, F=4, S=5, CL=6, BR=7, I=8, SI=9, P=10)
         super().__init__(data_dir, transform, pre_transform, pre_filter)
-        self.data, self.slices = torch.load(self.processed_paths[0])
+        if train:
+            # 载入训练集
+            self.data, self.slices = torch.load(self.processed_paths[0])
+        else:
+            # 载入测试集
+            self.data, self.slices = torch.load(self.processed_paths[1])
 
     def download(self):
         # Download to `self.raw_dir`
@@ -54,13 +59,13 @@ class ZincComplexBase(InMemoryDataset):
         y = r[["total", "inter", "intra", "torsions", "intra best pose"]]
         return id, pos, x, y
 
-    def save_data(self, total_ligands_graph: list):
+    def save_data(self, ligands_graph: list, file_path: str):
         """转换并保存数据."""
 
         if self.pre_filter is not None:
-            total_ligands_graph = [data for data in total_ligands_graph if self.pre_filter(data)]
+            ligands_graph = [data for data in ligands_graph if self.pre_filter(data)]
 
         if self.pre_transform is not None:
-            total_ligands_graph = [self.pre_transform(data) for data in total_ligands_graph]
-        data, slices = self.collate(total_ligands_graph)
-        torch.save((data, slices), self.processed_paths[0])
+            ligands_graph = [self.pre_transform(data) for data in ligands_graph]
+        data, slices = self.collate(ligands_graph)
+        torch.save((data, slices), file_path)

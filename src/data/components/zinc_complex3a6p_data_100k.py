@@ -9,12 +9,13 @@ import logging
 import torch
 from torch_geometric.data import Data
 from tqdm import tqdm
-from zinc_complex_base import ZincComplexBase
+
+from .zinc_complex_base import ZincComplexBase
 
 
 class ZincComplex3a6pData100k(ZincComplexBase):
-    def __init__(self, data_dir, transform=None, pre_transform=None, pre_filter=None):
-        super().__init__(data_dir, transform, pre_transform, pre_filter)
+    def __init__(self, data_dir, train=True, transform=None, pre_transform=None, pre_filter=None):
+        super().__init__(data_dir, train, transform, pre_transform, pre_filter)
 
     @property
     def raw_file_names(self):
@@ -24,7 +25,10 @@ class ZincComplex3a6pData100k(ZincComplexBase):
     @property
     def processed_file_names(self):
         """返回处理后的数据文件名，应该具有意义，方便辨识."""
-        return ["Ligands_Graph_Data_Multi_Label_100k.pt"]
+        return [
+            "Ligands_Graph_Data_Multi_Label_100k.pt",
+            "Ligands_Graph_Data_Multi_Label_Test_100k.pt",
+        ]
 
     def process(self):
         # Read data into huge `Data` list.
@@ -61,7 +65,7 @@ class ZincComplex3a6pData100k(ZincComplexBase):
                 break
             t += 1
         # 保存数据
-        self.save_data(total_ligands_graph)
+        self.save_data(total_ligands_graph, self.processed_paths[0])
 
 
 if __name__ == "__main__":
