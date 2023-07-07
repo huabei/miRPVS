@@ -66,8 +66,3 @@ class ZincComplex3a6pDataSingleLabelNoh(ZincComplexBase):
             #     break
 
         self.save_data(total_ligands_graph, self.processed_paths[0])
-
-
-if __name__ == "__main__":
-    data = ZincComplex3a6pDataSingleLabelNoh("data/dataset/dataset/3a6p_100w")
-    pass

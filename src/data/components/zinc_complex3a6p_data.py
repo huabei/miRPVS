@@ -58,11 +58,6 @@ class ZincComplex3a6pData(ZincComplexBase):
             )
             total_ligands_graph.append(d)
         # 保存训练集数据
-        self.save_data(total_ligands_graph[:100000], self.processed_paths[0])
+        self.save_data(total_ligands_graph[:-100000], self.processed_paths[0])
         # 保存测试集数据
-        self.save_data(total_ligands_graph[100000:], self.processed_paths[1])
-
-
-if __name__ == "__main__":
-    data = ZincComplex3a6pData("data/dataset/dataset/3a6p_100w")
-    pass
+        self.save_data(total_ligands_graph[-100000:], self.processed_paths[1])
