@@ -6,7 +6,7 @@
 defaults:
   - override /hydra/sweeper: optuna
   - override /hydra/launcher: basic
-  # - override /hydra/sweeper/sampler: random
+  # - override /hydra/sweeper/sampler: random # 默认使用tpe算法
 
 # choose metric which will be optimized by Optuna
 # make sure this is the correct name of some metric logged in lightning module!
