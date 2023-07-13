@@ -83,7 +83,7 @@ class E_GCL(nn.Module):
         return out, agg
 
     def coord_model(self, coord, edge_index, coord_diff, edge_feat):
-        row, col = edge_index
+        row, _ = edge_index
         trans = coord_diff * self.coord_mlp(edge_feat)
         if self.coords_agg == "sum":
             agg = unsorted_segment_sum(trans, row, num_segments=coord.size(0))
@@ -129,7 +129,6 @@ class Egnn(nn.Module):
         attention=False,
         normalize=False,
         tanh=False,
-        **kwargs
     ):
         """
 

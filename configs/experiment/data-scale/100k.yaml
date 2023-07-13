@@ -4,8 +4,8 @@
 # python train.py experiment=example
 
 defaults:
-  - override /data: egnn_multilabel.yaml
-  - override /model: egnn_singlelabel.yaml
+  - override /data: default.yaml
+  - override /model: egnn.yaml
   - override /callbacks: default.yaml
   - override /trainer: default.yaml
   - override /model/scheduler: step.yaml
@@ -22,7 +22,7 @@ seed: 1234
 
 trainer:
   min_epochs: 1
-  max_epochs: 60
+  max_epochs: 100
 
 model:
   optimizer:
@@ -35,7 +35,7 @@ model:
     in_node_nf: 11
     hidden_nf: 128
     out_node_nf: 5
-    n_layers: 3
+    n_layers: 4
     attention: true
     normalize: true
 
@@ -50,7 +50,7 @@ logger:
   wandb:
     project: egnn_multilabel_data_scale
     tags: ${tags}
-    group: 100k
+    group: 100k-tpe-20trials-4layers
     offline: True
 
 hydra:
@@ -59,7 +59,7 @@ hydra:
     params:
       # model.optimizer.weight_decay: tag(log, interval(5e-6, 0.0001))
       model.optimizer.lr: tag(log, interval(0.001, 0.01))
-      model.scheduler.step_size: range(10, 20)
-      model.scheduler.gamma: interval(0.1, 0.5)
+      model.scheduler.step_size: range(15, 25)
+      model.scheduler.gamma: interval(0.3, 0.7)
       # model.net.n_layers: choice(3, 4, 5)
-    n_trials: 10
+    n_trials: 20
