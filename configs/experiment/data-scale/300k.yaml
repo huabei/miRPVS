@@ -35,7 +35,7 @@ model:
     in_node_nf: 11
     hidden_nf: 128
     out_node_nf: 5
-    n_layers: 3
+    n_layers: 4
     attention: true
     normalize: true
 
