@@ -73,7 +73,7 @@ class DInterface(pl.LightningDataModule):
             self.data_train,
             batch_size=self.hparams.batch_size,
             num_workers=self.hparams.num_workers,
-            shuffle=False,
+            shuffle=True,
             pin_memory=self.hparams.pin_memory,
         )
 
