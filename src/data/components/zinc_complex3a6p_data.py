@@ -5,6 +5,7 @@
 """
 
 import logging
+import random
 
 import torch
 from torch_geometric.data import Data
@@ -25,7 +26,14 @@ class ZincComplex3a6pData(ZincComplexBase):
     @property
     def processed_file_names(self):
         """返回处理后的数据文件名，应该具有意义，方便辨识."""
-        return ["Ligands_Graph_Data_Multi_Label.pt", "Ligands_Graph_Data_Multi_Label_Test_100k.pt"]
+        return [
+            "Ligands_Graph_Data_Multi_Label.pt",
+            "Ligands_Graph_Data_Multi_Label_Test_100k.pt",
+            "Ligands_Graph_Data_Multi_Label_100k.pt",
+            "Ligands_Graph_Data_Multi_Label_300k.pt",
+            "Ligands_Graph_Data_Multi_Label_500k.pt",
+            "Ligands_Graph_Data_Multi_Label_700k.pt",
+        ]
 
     def process(self):
         # Read data into huge `Data` list.
@@ -57,7 +65,14 @@ class ZincComplex3a6pData(ZincComplexBase):
                 id=torch.tensor(id, dtype=torch.long),
             )
             total_ligands_graph.append(d)
+        # 随机打乱数据
+        random.shuffle(total_ligands_graph)
         # 保存训练集数据
         self.save_data(total_ligands_graph[:-100000], self.processed_paths[0])
         # 保存测试集数据
         self.save_data(total_ligands_graph[-100000:], self.processed_paths[1])
+
+        self.save_data(total_ligands_graph[:100000], self.processed_paths[2])
+        self.save_data(total_ligands_graph[:300000], self.processed_paths[3])
+        self.save_data(total_ligands_graph[:500000], self.processed_paths[4])
+        self.save_data(total_ligands_graph[:700000], self.processed_paths[5])
