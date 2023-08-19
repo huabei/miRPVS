@@ -1,0 +1,53 @@
+# @package _global_
+
+# to execute this experiment run:
+# python train.py experiment=example
+
+defaults:
+  - override /data: default.yaml
+  - override /model: egnn.yaml
+  - override /callbacks: default.yaml
+  - override /trainer: default.yaml
+  - override /model/scheduler: step.yaml
+
+# all parameters below will be merged with parameters from default configurations set above
+# this allows you to overwrite only specified parameters
+
+# task name, determines output directory path
+task_name: "egnn_4z4d"
+
+tags: ["egnn", "step", "4z4d"]
+
+seed: 1234
+
+trainer:
+  min_epochs: 1
+  max_epochs: 100
+
+model:
+  optimizer:
+    lr: 0.003467
+    weight_decay: 0.0
+  scheduler:
+    step_size: 21
+    gamma: 0.2277
+  net:
+    in_node_nf: 11
+    hidden_nf: 128
+    out_node_nf: 5
+    n_layers: 3
+    attention: true
+    normalize: true
+
+data:
+  data_dir: ${paths.data_dir}/dataset/4z4d_100w
+  dataset: zinc_complex4z4d_data
+  batch_size: 64
+  num_workers: 8
+  pin_memory: True
+
+logger:
+  wandb:
+    project: egnn_4z4d
+    tags: ${tags}
+    group: ~

@@ -14,9 +14,9 @@ defaults:
 # this allows you to overwrite only specified parameters
 
 # task name, determines output directory path
-task_name: "egnn_multilabel_step"
+task_name: "4z4d_500k_opti"
 
-tags: ["egnn_multilabel", "step"]
+tags: ["sweep", "step"]
 
 seed: 1234
 
@@ -26,28 +26,40 @@ trainer:
 
 model:
   optimizer:
-    lr: 0.002
+    lr: 0.001
     weight_decay: 0.0
   scheduler:
-    step_size: 16
-    gamma: 0.35
+    step_size: 1
+    gamma: 0.5
   net:
     in_node_nf: 11
     hidden_nf: 128
     out_node_nf: 5
-    n_layers: 3
+    n_layers: 4
     attention: true
     normalize: true
 
 data:
-  data_dir: ${paths.data_dir}/dataset/3a6p_100w
-  dataset: zinc_complex3a6p_data
+  data_dir: ${paths.data_dir}/dataset/4z4d_100w
+  dataset: zinc_complex4z4d_data_500k
   batch_size: 64
   num_workers: 8
   pin_memory: True
 
 logger:
   wandb:
-    project: egnn_3a6p_multilabel_1m
+    project: egnn_4z4d
     tags: ${tags}
-    group: 3-128
+    group: 500k-tpe
+    offline: True
+
+hydra:
+  sweeper:
+    # define hyperparameter search space
+    params:
+      # model.optimizer.weight_decay: tag(log, interval(5e-6, 0.0001))
+      model.optimizer.lr: tag(log, interval(0.0001, 0.005))
+      model.scheduler.step_size: range(10, 25)
+      model.scheduler.gamma: interval(0.2, 0.7)
+      # model.net.n_layers: choice(3, 4, 5)
+    n_trials: 20
