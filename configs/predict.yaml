@@ -1,0 +1,28 @@
+output_dir: /public/home/hpc192311018/Huabei/project/SMTARRNA-sync/SMTarRNA/data/total_dataset_results
+
+# data_dir: /public/home/hpc192311018/Huabei/project/SMTARRNA-sync/SMTarRNA/data/dataset/zinc_zip_dataset
+
+# test
+data_dir: /public/home/hpc192311018/Huabei/project/SMTARRNA-sync/SMTarRNA/data/dataset/zinc_zip_dataset_test
+
+# data_dir: /home/huabei/projects/SMTarRNA/data/dataset/test_zip_dataset
+# dataset: JJ
+
+batch_size: 1024
+num_workers: 7
+
+model:
+  in_node_nf: 11
+  hidden_nf: 128
+  out_node_nf: 5
+  n_layers: 3
+  attention: true
+  normalize: true
+
+# passing checkpoint path is necessary for evaluation
+ckpt_path:
+  3a6p: /public/home/hpc192311018/Huabei/project/SMTARRNA-sync/SMTarRNA/logs/3a6p_total_data_opti/multiruns/2023-08-12_10-44-26/8/checkpoints/epoch_032.ckpt
+  4z4c: /public/home/hpc192311018/Huabei/project/SMTARRNA-sync/SMTarRNA/logs/4z4c_total_data_opti/multiruns/2023-08-12_10-44-26/12/checkpoints/epoch_059.ckpt
+  4z4d: /public/home/hpc192311018/Huabei/project/SMTARRNA-sync/SMTarRNA/logs/4z4d_total_data_opti/multiruns/2023-08-12_10-44-26/14/checkpoints/epoch_050.ckpt
+  # 4z4d: /home/huabei/projects/SMTarRNA/logs/logs/4z4d_total_data_opti/multiruns/2023-08-12_10-44-26/14/checkpoints/epoch_050.ckpt
+  6cbd: /public/home/hpc192311018/Huabei/project/SMTARRNA-sync/SMTarRNA/logs/6cbd_total_data_opti/multiruns/2023-08-23_19-33-11/3/checkpoints/epoch_089.ckpt
