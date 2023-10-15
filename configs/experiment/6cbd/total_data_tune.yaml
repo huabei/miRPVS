@@ -1,0 +1,65 @@
+# @package _global_
+
+# to execute this experiment run:
+# python train.py experiment=example
+
+defaults:
+  - override /data: default.yaml
+  - override /model: egnn.yaml
+  - override /callbacks: default.yaml
+  - override /trainer: default.yaml
+  - override /model/scheduler: step.yaml
+
+# all parameters below will be merged with parameters from default configurations set above
+# this allows you to overwrite only specified parameters
+
+# task name, determines output directory path
+task_name: "6cbd_total_data_opti"
+
+tags: ["sweep", "step", "data-scale"]
+
+seed: 1234
+
+trainer:
+  min_epochs: 1
+  max_epochs: 100
+
+model:
+  optimizer:
+    lr: 0.001
+    weight_decay: 0.0
+  scheduler:
+    step_size: 1
+    gamma: 0.5
+  net:
+    in_node_nf: 11
+    hidden_nf: 128
+    out_node_nf: 5
+    n_layers: 3
+    attention: true
+    normalize: true
+
+data:
+  data_dir: ${paths.data_dir}/dataset/6cbd_100w
+  dataset: zinc_complex6cbd_data
+  batch_size: 64
+  num_workers: 8
+  pin_memory: True
+
+logger:
+  wandb:
+    project: egnn_6cbd
+    tags: ${tags}
+    group: total_data_tpe
+    offline: True
+
+hydra:
+  sweeper:
+    # define hyperparameter search space
+    params:
+      # model.optimizer.weight_decay: tag(log, interval(5e-6, 0.0001))
+      model.optimizer.lr: tag(log, interval(0.0001, 0.005))
+      model.scheduler.step_size: range(10, 25)
+      model.scheduler.gamma: interval(0.2, 0.7)
+      # model.net.n_layers: choice(3, 4, 5)
+    n_trials: 20

@@ -1,18 +1,50 @@
 # @package _global_
 
 defaults:
-  - _self_
-  - data: mnist.yaml # choose datamodule with `test_dataloader()` for evaluation
-  - model: mnist.yaml
+  - data: default.yaml # choose datamodule with `test_dataloader()` for evaluation
+  - model: egnn.yaml
   - logger: null
   - trainer: default.yaml
   - paths: default.yaml
   - extras: default.yaml
   - hydra: default.yaml
+  - _self_
+
+data:
+  # data_dir: ${paths.data_dir}/dataset/3a6p_100w
+  # dataset: zinc_complex3a6p_data
+  # data_dir: ${paths.data_dir}/dataset/4z4d_100w
+  # dataset: zinc_complex4z4d_data
+  # data_dir: ${paths.data_dir}/dataset/4z4c_100w
+  # dataset: zinc_complex4z4c_data
+  data_dir: ${paths.data_dir}/dataset/6cbd_100w
+  dataset: zinc_complex6cbd_data
+  batch_size: 64
+  num_workers: 8
+  pin_memory: True
+
+model:
+  optimizer:
+    lr: 0.003467
+    weight_decay: 0.0
+  scheduler:
+    step_size: 10
+    gamma: 0.2277
+  net:
+    in_node_nf: 11
+    hidden_nf: 128
+    out_node_nf: 5
+    n_layers: 3
+    attention: true
+    normalize: true
 
 task_name: "eval"
 
 tags: ["dev"]
 
 # passing checkpoint path is necessary for evaluation
-ckpt_path: ???
+# ckpt_path: /home/huabei/projects/SMTarRNA/logs/logs/3a6p_total_data_opti/multiruns/2023-08-12_10-44-26/8/checkpoints/epoch_032.ckpt
+# ckpt_path: /home/huabei/projects/SMTarRNA/logs/logs/4z4c_total_data_opti/multiruns/2023-08-12_10-44-26/12/checkpoints/epoch_059.ckpt
+# ckpt_path: /home/huabei/projects/SMTarRNA/logs/logs/4z4d_total_data_opti/multiruns/2023-08-12_10-44-26/14/checkpoints/epoch_050.ckpt
+ckpt_path: /home/huabei/projects/SMTarRNA/logs/logs/6cbd_total_data_opti/multiruns/2023-08-23_19-33-11/3/checkpoints/epoch_089.ckpt
+

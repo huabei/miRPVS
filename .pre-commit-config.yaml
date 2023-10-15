@@ -66,12 +66,12 @@ repos:
   #       args: ["-s", "B101"]
 
   # yaml formatting
-  - repo: https://github.com/pre-commit/mirrors-prettier
-    rev: v3.0.0-alpha.6
-    hooks:
-      - id: prettier
-        types: [yaml]
-        exclude: "environment.yaml"
+  # - repo: https://github.com/pre-commit/mirrors-prettier
+  #   rev: v3.0.0-alpha.6
+  #   hooks:
+  #     - id: prettier
+  #       types: [yaml]
+  #       exclude: "environment.yaml"
 
   # shell scripts linter
   - repo: https://github.com/shellcheck-py/shellcheck-py
