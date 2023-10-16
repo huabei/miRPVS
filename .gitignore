@@ -153,3 +153,4 @@ configs/local/default.yaml
 /project/
 # Aim logging
 .aim
+outputs/
