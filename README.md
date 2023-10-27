@@ -30,7 +30,7 @@ The package development version is tested on *Linux: Ubuntu 22.04* operating sys
 
 ### Python Dependencies
 
-Dependencies for KarmaDock:
+Dependencies for SMTarRNA:
 
 ```
 pytorch
@@ -46,7 +46,7 @@ rdkit=2022.09.1
 git clone https://github.com/huabei/SMTarRNA.git
 ```
 
-### install karmadock_env
+### install env
 
 you can install the env via yaml file
 
@@ -55,4 +55,36 @@ cd SMTarRNA
 conda env create -f requirements.yaml
 ```
 
+this project use [ashleve/lightning-hydra-template](https://github.com/ashleve/lightning-hydra-template) as the base project.
+
 ## ligand docking
+
+## train model
+
+### config
+
+> This template is suitable for multi-platform operation, please note that the config/local is configured specifically for different platforms.
+
+You just need to configure your own hyperparameters in config/experiment and then run：
+
+```shell
+python src/train.py experiment=exp_name
+```
+
+The configuration used for this job is also stored in the config/experiment directory and can be used directly.
+
+## eval
+
+The config/eval.yaml file needs to be configured with your data locations, model parameter paths, etc. And run:
+
+```shell
+python src/eval.py
+```
+
+## predict
+
+The config/predict.yaml file needs to be configured with your data locations, model parameter paths, etc. And run:
+
+```shell
+python src/predict.py
+```
