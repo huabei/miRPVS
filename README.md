@@ -7,8 +7,11 @@
 - [Overview](#overview)
 - [Software Requirements](#software-requirements)
 - [Installation Guide](#installation-guide)
-- [Demo: Ligand docking](#demo1--ligand-docking-on-pdbbind-core-set)
-- [Demo: Virtual screening](#demo2--virtual-screening-on-dekois-20)
+- [Ligand docking](#ligand-docking)
+- [Train Model](#train-model)
+- [Eval](#eval)
+- [predict](#predict)
+- [Virtual screening](#virtual-screening)
 
 ## Overview
 
@@ -88,3 +91,5 @@ The config/predict.yaml file needs to be configured with your data locations, mo
 ```shell
 python src/predict.py
 ```
+
+## virtual screening
