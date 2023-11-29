@@ -17,7 +17,15 @@ data:
   # dataset: zinc_complex4z4d_data
   # data_dir: ${paths.data_dir}/dataset/4z4c_100w
   # dataset: zinc_complex4z4c_data
-  data_dir: ${paths.data_dir}/dataset/6cbd_100w
+  # data_dir: ${paths.data_dir}/dataset/6cbd_100w
+  # dataset: zinc_complex6cbd_data
+  # data_dir: ${paths.data_dir}/dataset/4z4d_100w_test
+  # dataset: zinc_complex4z4d_data
+  # data_dir: ${paths.data_dir}/dataset/4z4c_100w_test
+  # dataset: zinc_complex4z4c_data
+  # data_dir: ${paths.data_dir}/dataset/3a6p_100w_test
+  # dataset: zinc_complex3a6p_data
+  data_dir: ${paths.data_dir}/dataset/6cbd_100w_test
   dataset: zinc_complex6cbd_data
   batch_size: 64
   num_workers: 8
@@ -43,7 +51,7 @@ task_name: "eval"
 tags: ["dev"]
 
 # passing checkpoint path is necessary for evaluation
-# ckpt_path: /home/huabei/projects/SMTarRNA/logs/logs/3a6p_total_data_opti/multiruns/2023-08-12_10-44-26/8/checkpoints/epoch_032.ckpt
-# ckpt_path: /home/huabei/projects/SMTarRNA/logs/logs/4z4c_total_data_opti/multiruns/2023-08-12_10-44-26/12/checkpoints/epoch_059.ckpt
-# ckpt_path: /home/huabei/projects/SMTarRNA/logs/logs/4z4d_total_data_opti/multiruns/2023-08-12_10-44-26/14/checkpoints/epoch_050.ckpt
-ckpt_path: /home/huabei/projects/SMTarRNA/logs/logs/6cbd_total_data_opti/multiruns/2023-08-23_19-33-11/3/checkpoints/epoch_089.ckpt
+# ckpt_path: /home/huabei/project/SMTarRNA/logs/logs/3a6p_total_data_opti/multiruns/2023-08-12_10-44-26/8/checkpoints/epoch_032.ckpt
+# ckpt_path: /home/huabei/project/SMTarRNA/logs/logs/4z4c_total_data_opti/multiruns/2023-08-12_10-44-26/12/checkpoints/epoch_059.ckpt
+# ckpt_path: /home/huabei/project/SMTarRNA/logs/logs/4z4d_total_data_opti/multiruns/2023-08-12_10-44-26/14/checkpoints/epoch_050.ckpt
+ckpt_path: /home/huabei/project/SMTarRNA/logs/logs/6cbd_total_data_opti/multiruns/2023-08-23_19-33-11/3/checkpoints/epoch_089.ckpt

@@ -60,7 +60,7 @@ folders = ["3a6p", "4z4c", "4z4d", "6cbd"]
 
 for folder in folders:
     logging.info(f"processing {folder}")
-    file_lists = os.listdir(folder)[:10]
+    file_lists = os.listdir(folder)
     total_data = get_data(folder, file_lists)
     top_data = get_top_data(total_data)
     logging.info("saving data")

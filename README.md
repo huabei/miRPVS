@@ -4,14 +4,21 @@
 
 ## Contents
 
-- [Overview](#overview)
-- [Software Requirements](#software-requirements)
-- [Installation Guide](#installation-guide)
-- [Ligand docking](#ligand-docking)
-- [Train Model](#train-model)
-- [Eval](#eval)
-- [predict](#predict)
-- [Virtual screening](#virtual-screening)
+- [Equivalent Graph Neural Network-based Virtual Screening of Ultra-large chemical libraries  Targeting miRNA-protein complex](#equivalent-graph-neural-network-based-virtual-screening-of-ultra-large-chemical-libraries--targeting-mirna-protein-complex)
+  - [Contents](#contents)
+  - [Overview](#overview)
+  - [Software Requirements](#software-requirements)
+    - [OS Requirements](#os-requirements)
+    - [Python Dependencies](#python-dependencies)
+  - [Installation Guide](#installation-guide)
+    - [download this repo](#download-this-repo)
+    - [install env](#install-env)
+  - [ligand docking](#ligand-docking)
+  - [train model](#train-model)
+    - [config](#config)
+  - [eval](#eval)
+  - [predict](#predict)
+  - [virtual screening](#virtual-screening)
 
 ## Overview
 
@@ -46,7 +53,7 @@ rdkit=2022.09.1
 ### download this repo
 
 ```
-git clone https://github.com/huabei/SMTarRNA.git
+git clone https://github.com/huabei/miRPVS.git
 ```
 
 ### install env
@@ -54,7 +61,7 @@ git clone https://github.com/huabei/SMTarRNA.git
 you can install the env via yaml file
 
 ```
-cd SMTarRNA
+cd miRPVS
 conda env create -f requirements.yaml
 ```
 
