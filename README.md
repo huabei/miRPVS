@@ -4,11 +4,16 @@
 
 ## Contents
 
-- [Overview](#overview)
-- [Software Requirements](#software-requirements)
-- [Installation Guide](#installation-guide)
-- [Demo: Ligand docking](#demo1--ligand-docking-on-pdbbind-core-set)
-- [Demo: Virtual screening](#demo2--virtual-screening-on-dekois-20)
+- [Equivalent Graph Neural Network-based Virtual Screening of Ultra-large chemical libraries  Targeting miRNA-protein complex](#equivalent-graph-neural-network-based-virtual-screening-of-ultra-large-chemical-libraries--targeting-mirna-protein-complex)
+  - [Contents](#contents)
+  - [Overview](#overview)
+  - [Software Requirements](#software-requirements)
+    - [OS Requirements](#os-requirements)
+    - [Python Dependencies](#python-dependencies)
+  - [Installation Guide](#installation-guide)
+    - [download this repo](#download-this-repo)
+    - [install karmadock_env](#install-karmadock_env)
+  - [ligand docking](#ligand-docking)
 
 ## Overview
 
@@ -43,7 +48,7 @@ rdkit=2022.09.1
 ### download this repo
 
 ```
-git clone https://github.com/huabei/SMTarRNA.git
+git clone https://github.com/huabei/miRPVS.git
 ```
 
 ### install karmadock_env
@@ -51,7 +56,7 @@ git clone https://github.com/huabei/SMTarRNA.git
 you can install the env via yaml file
 
 ```
-cd SMTarRNA
+cd miRPVS
 conda env create -f requirements.yaml
 ```
 
