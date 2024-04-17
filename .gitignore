@@ -154,3 +154,7 @@ configs/local/default.yaml
 # Aim logging
 .aim
 outputs/
+
+# Jupyter Notebook
+notebooks/fig
+notebooks/*.pkl
