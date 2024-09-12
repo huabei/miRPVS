@@ -1,0 +1,50 @@
+# @package _global_
+
+# to execute this experiment run:
+# python train.py experiment=example
+
+defaults:
+  - override /model: molecule_gnn
+  - override /callbacks: default
+  - override /trainer: default
+
+# all parameters below will be merged with parameters from default configurations set above
+# this allows you to overwrite only specified parameters
+
+# task name, determines output directory path
+task_name: "molecule_gnn_retrain"
+
+tags: ["test"]
+
+seed: 1234
+
+trainer:
+  min_epochs: 1
+  max_epochs: 300
+
+model:
+  optimizer:
+    lr: 0.0005
+    weight_decay: 0
+  net:
+    in_node_nf: 11
+    hidden_nf: 256
+    out_node_nf: 5
+    n_layers: 8
+    out_layers: 6
+  scheduler:
+    step_size: 2
+    gamma: 0.95
+
+data:
+  data_dir: ${paths.data_dir}/dataset/3a6p_100w_test
+  dataset: zinc_complex3a6p_data_molecule_gnn
+  batch_size: 128
+  num_workers: 8
+  pin_memory: True
+
+logger:
+  wandb:
+    project: test
+    tags: ${tags}
+    # offline: True
