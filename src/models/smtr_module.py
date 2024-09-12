@@ -5,7 +5,7 @@ import torch
 from lightning import LightningModule
 from lightning.pytorch.loggers import WandbLogger
 from torch_geometric.data import Data
-from torchmetrics import MaxMetric, MeanMetric, PearsonCorrCoef, R2Score
+from torchmetrics import MaxMetric, MeanMetric, PearsonCorrCoef, R2Score, MeanAbsoluteError, MeanSquaredError
 
 from src.utils.plot_fig import plot_fig
 
@@ -50,6 +50,14 @@ class SMTARRNAModule(LightningModule):
         self.train_r2 = R2Score()
         self.val_r2 = R2Score()
         self.test_r2 = R2Score()
+        
+        self.train_mae = MeanAbsoluteError()
+        self.val_mae = MeanAbsoluteError()
+        self.test_mae = MeanAbsoluteError()
+        
+        self.train_mse = MeanSquaredError()
+        self.val_mse = MeanSquaredError()
+        self.test_mse = MeanSquaredError()
 
         # for averaging loss across batches
         self.train_loss = MeanMetric()
@@ -167,9 +175,13 @@ class SMTARRNAModule(LightningModule):
         self.test_loss(loss)
         self.test_pearson(preds[:, 0], targets[:, 0])
         self.test_r2(preds[:, 0], targets[:, 0])
+        self.test_mae(preds[:, 0], targets[:, 0])
+        self.test_mse(preds[:, 0], targets[:, 0])
         self.log("test/loss", self.test_loss, on_step=False, on_epoch=True, prog_bar=True)
         self.log("test/pearson", self.test_pearson, on_step=False, on_epoch=True, prog_bar=True)
         self.log("test/r2", self.test_r2, on_step=False, on_epoch=True, prog_bar=True)
+        self.log("test/mae", self.test_mae, on_step=False, on_epoch=True, prog_bar=True)
+        self.log("test/mse", self.test_mse, on_step=False, on_epoch=True, prog_bar=True)
 
     def on_test_epoch_end(self):
         test_pred_y = torch.concat([x for x in self.test_results["preds"]]).detach().cpu().numpy()
@@ -180,7 +192,6 @@ class SMTARRNAModule(LightningModule):
         for logger in self.loggers:
             if isinstance(logger, WandbLogger):
                 import wandb
-
                 logger.experiment.log({"test/fig": wandb.Image(test_fig)})
                 break
 
