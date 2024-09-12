@@ -154,3 +154,10 @@ configs/local/default.yaml
 # Aim logging
 .aim
 outputs/
+
+notebooks/fig
+notebooks/*.pkl
+lightning_logs/
+mlp_gcn_mgnn_results/
+*.ods
+*.db
