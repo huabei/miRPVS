@@ -12,7 +12,7 @@
   - [Installation Guide](#installation-guide)
     - [download this repo](#download-this-repo)
     - [install env](#install-env)
-  - [Dataset and Processing](#dataset-and-processing)
+  - [Dataset Download and Processing](#dataset-download-and-processing)
   - [Ligand Docking](#ligand-docking)
   - [Train model](#train-model)
   - [Model Tuning](#model-tuning)
@@ -61,17 +61,30 @@ you can install the env via yaml file
 ```
 cd miRPVS
 conda env create -f requirements.yaml
+conda activate miRPVS
 ```
 
 this project use [ashleve/lightning-hydra-template](https://github.com/ashleve/lightning-hydra-template) as the base project.
 
-## Dataset and Processing
+## Dataset Download and Processing
+
+The entire docking dataset can be downloaded from the [ZINC20 Tranches](https://zinc20.docking.org/tranches/home/#), and we chose a subset of the *drug-like* data containing *3D* structures as the docking dataset.
+
+The molecules were downloaded directly into *pdbqt* format, which can be used directly for autodock vina docking.
+
+Due to the large amount of data, we can construct an index file for the entire dataset in order to facilitate statistics and sampling of the dataset.
+By running the following command, you can generate an index file for each subfolder, as well as a structural information file for the molecules.
+
+```bash
+cd data
+ls zinc20_drug-like_3d | xargs -I {} python create_zinc20_hdf5.py {}
+```
 
 ## Ligand Docking
 
 ## Train model
 
-> This template is suitable for multi-platform operation, please note that the config/local is configured specifically for different platforms.
+> This code is suitable for multi-platform operation, please note that the config/local is configured specifically for different platforms.
 
 You just need to configure your own hyperparameters in config/experiment and then run：
 
