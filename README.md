@@ -38,7 +38,7 @@ The package development version is tested on *Linux: Ubuntu 22.04* operating sys
 
 ### Python Dependencies
 
-Dependencies for SMTarRNA:
+Dependencies for miRPVS:
 
 ```
 pytorch
@@ -76,37 +76,67 @@ Due to the large amount of data, we can construct an index file for the entire d
 By running the following command, you can generate an index file for each subfolder, as well as a structural information file for the molecules.
 
 ```bash
+# assert the zinc data is placed in zinc_drug-like_3d folder
 cd data
+mkdir zinc20_drug-like_3d
+cd zinc20_drug-like_3d
+# run zinc download file here.
+# after download complete, get all molecule index.
+cd ..
 ls zinc20_drug-like_3d | xargs -I {} python create_zinc20_hdf5.py {}
 ```
 
-## Ligand Docking
+## Sample Ligand and Docking
+
+### Sample
+Use the following command to extract 1/600 of all molecules to train the model and randomly sample 10k molecules out of the extracted molecules to optimize the docking parameters.
+```bash
+cd data
+python sample_data.py zinc20_drug-like_3d
+```
+
+### Docking
+Docking a large number of molecules is recommended to be done using multiple compute nodes, if you are using a slurm cluster, you can refer to the file `data/submit_batch_dock_job.py` to assign the docking task.
+
+## Constructing the training dataset
+After getting the docking results for all molecules, assumed that all the docking energies are saved in the dock_results folder. Run the following command to construct the training dataset.
+```bash
+cd data
+python construct_train_dataset_from _dock_output.py dock_results
+```
+It will create *dataset* folder to save the raw data.
 
 ## Train model
 
-> This code is suitable for multi-platform operation, please note that the config/local is configured specifically for different platforms.
+> `config` folder 
 
 You just need to configure your own hyperparameters in config/experiment and then run：
 
-```shell
-python src/train.py experiment=exp_name
+```bash
+python src/train.py experiment=egnn
 ```
 
-The configuration used for this job is also stored in the config/experiment directory and can be used directly.
+The configuration used for this job is also stored in the config/experiment directory and can be used directly.The config folder contains the hyperparameter configuration files for the training model, which can be changed as appropriate.
 
 ## Model Tuning
 
+Similarly, modify the configuration file `config/experiment/egnn_tune.yaml` and run the following command to perform a hyperparameter search of the model.
+```bash
+python src/train.py experiment=egnn_tune
+```
+
 ## eval
 
-The config/eval.yaml file needs to be configured with your data locations, model parameter paths, etc. And run:
+The `config/eval.yaml` file needs to be configured with your data locations, model parameter paths, etc. And run:
 
 ```shell
 python src/eval.py
 ```
 
-## predict
 
-The config/predict.yaml file needs to be configured with your data locations, model parameter paths, etc. And run:
+## Screen The Whole Dataset
+
+The `config/predict.yaml` file needs to be configured with your data locations, model parameter paths, etc. And run:
 
 ```shell
 python src/predict.py
