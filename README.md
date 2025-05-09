@@ -1,10 +1,11 @@
-# Equivalent Graph Neural Network-based Accurate and Ultra-fast Virtual Screening of Small Molecules Targeting miRNA-Protein Complex
+# Equivariant Graph Neural Network-based Accurate and Ultra-fast Virtual Screening of Small Molecules Targeting miRNA-Protein Complex
 
 ![](img/workflow.png)
 
 ## Contents
 
-- [Equivalent Graph Neural Network-based Accurate and Ultra-fast Virtual Screening of Small Molecules Targeting miRNA-Protein Complex](#equivalent-graph-neural-network-based-accurate-and-ultra-fast-virtual-screening-of-small-molecules-targeting-mirna-protein-complex)
+- [Equivariant Graph Neural Network-based Accurate and Ultra-fast Virtual Screening of Small Molecules Targeting miRNA-Protein Complex](#equivariant-graph-neural-network-based-accurate-and-ultra-fast-virtual-screening-of-small-molecules-targeting-mirna-protein-complex)
+
   - [Contents](#contents)
   - [Software Requirements](#software-requirements)
     - [OS Requirements](#os-requirements)
@@ -21,7 +22,7 @@
 
 If you find it useful, please cite:
 
-**Equivalent Graph Neural Network-based Virtual Screening of Ultra-large chemical libraries  Targeting miRNA-protein complex**
+**Equivariant Graph Neural Network-based Virtual Screening of Ultra-large chemical libraries  Targeting miRNA-protein complex**
 Huabei Wang; Zhimin Zhang; Guangyang Zhang, Ming Wen\* and Hongmei Lu\*.
 *Will Published in:*
 *DOI:* [](<>)
